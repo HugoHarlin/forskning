@@ -1,8 +1,11 @@
 
+for dx = [10,100,1000]
+    for dy = [10,100,1000]
+
 %% Implementation details and a clean slate
-close all
-clear
-clc
+%close all
+%clear
+%clc
 tic
 % This code implements a system of equations based on the work by Jäger et
 % al. (2010) with an additional benthic algal layer at the bottom,
@@ -24,8 +27,8 @@ tic
 %% Model Parameters
 % all parameters are organized in a struct p for implementation convenience
 p = struct;
-p.dx = 10.0; % Radial Turbulent-diffusion coefficient [m^2 day^-1]
-p.dz = 10.0; % Vertical Turbulent-diffusion coefficient [m^2 day^-1]
+p.dx = dx; % Radial Turbulent-diffusion coefficient [m^2 day^-1]
+p.dz = dy; % Vertical Turbulent-diffusion coefficient [m^2 day^-1]
 p.I0 = 300; % Light intensity at the surface [micro-mol photons m^-2 s^-1]
 p.k = 0.0003; % Specific light-attenuation coefficient of algal biomass [m^2 mg C^-1]
 p.kB = 0.0003; % Specific light-attenuation coefficient of Benthic biomass [m^2 mg C^-1]
@@ -34,24 +37,24 @@ p.lbg = 0.1; % Specific algal maintenance respiration losses [day^-1]
 p.M = 1.5; % Half-saturation constant of algal nutrient uptake [mg P m^-3]
 p.M_benth = 1.5; % Half-saturation constant of benthic algaenutrient uptake [mgPm^-3]
 p.Gmax = 1.08; % Maximum specific phytoplankton production rate [day^-1]
-p.Gmax_benth =  1.08; % Maximum specific benthic algae production rate [day^-1]
+p.Gmax_benth = 1.08; % Maximum specific benthic algae production rate [day^-1]
 p.H = 120.0; % Half-saturation constant of light-dependent algal production [micro-mol photons m^-2 s^-1]
 p.H_benth = 120.0; % Half-saturation constant of light-dependent benthic algal production [micro-mol photons m^-2 s^-1]
 p.q = 0.0244; % Algal nutrient quota, Redfield ratio [mgP/mgC]
-p.q_benth =  0.0244; % Benthic algae nutrient quota, Redfield ratio [mgP/mgC]
+p.q_benth = 0.0244; % Benthic algae nutrient quota, Redfield ratio [mgP/mgC]
 p.lbg_benth = 0.1; % Specific benthic algae maintenance respiration losses [day^-1]
-p.r =  0.02; % Specific mineralization rate of sedimented nutrients [day^-1]
+p.r = 0.02; % Specific mineralization rate of sedimented nutrients [day^-1]
 p.v = 0.1; % Algal sinking velocity [m day^-1]
 p.death_rate = 1; % coefficient governing the proportion of sinking algae at the bottom that dies.
                   % 0 = no death. 1 = all algae that would have sunk through the sediment dies. 
-p.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
+p.benth_recycling = 0.5; % Governs the portion of respired nutrients that are released as dissolved nutrients.
                          % the rest is bound in particulate matter in the sediment. 
                        
 %% Lake topology and Mesh
 % Quantities relating to system size
-p.Xn = 16; % Number of grid-points (width)
-p.Zn = 16; % Number of grid-points (depth)
-p.Lmin = 0.1; % Minimum lake depth (depth at land-water interface) [m]
+p.Xn = 41; % Number of grid-points (width)
+p.Zn = 41; % Number of grid-points (depth)
+p.Lmin = 0.001; % Minimum lake depth (depth at land-water interface) [m]
 p.Lmax = 20; % Maximum lake depth [m]
 p.W = 20; % Lake radius [m]
 p.alpha = 1; % Exponent governing the slope of the lake bottom
@@ -101,18 +104,11 @@ p.dZ_dEta_preCalc = dY_dEta_preCalc;
 
 %% Inital Conditions
 
-A0 = 0.0*ones(p.Zn-1, p.Xn-1); % Initial Algal carbon density [mg C m^-3]
-  A0(1,:)= 1.0;
-%  A0(:,3)= 1.0;
-%  A0(:,5)= 1.0;
-%  A0(:,7)= 1.0;
-%  A0(:,9)= 1.0;
-%  A0(:,11)= 1.0;
-%  A0(:,13)= 1.0;
-%  A0(:,15)= 1.0;
+A0 = 1.0*ones(p.Zn-1, p.Xn-1); % Initial Algal carbon density [mg C m^-3]
+ %A0(1,1)= 1.25;
 % A0(1,3)= 1.5;
 % A0(1,1)= 1;
-% A0(5,5) = 10;
+% A0(2,3) = 10;
 % A0(2,:) = 1;
 % A0(3,:) = 1.1;
 %A0(1,:) = 10./p.volumes_cyl(1,:);
@@ -122,15 +118,14 @@ Rd0 = 1.000*ones(p.Zn-1, p.Xn-1); % initial concentration of dissolved nutrients
 % A0(1,1) = 1;
 % Rd0(1,1) = 1;
 % Rd0(1,2) = 1.1;
- Rd0(5,5) = 1.0;
+ %Rd0(2,2) = 1.1;
 % Rd0(2,2) = 2;
-% Rd0(5,5) = 1;
+ %Rd0(3,3) = 3;
 %Rd0(16,16) = 5;
 Rs0 = 1.0*ones(1, p.Xn-1); % initial concentration of sediment nutrient density [mg P m^-2]
 %Rs0(1) = 1;
-B0 = 0.00*ones(1, p.Xn-1); % initial concentration of benthic algal density [mg C m^-2]
+B0 = 1.00*ones(1, p.Xn-1); % initial concentration of benthic algal density [mg C m^-2]
 %B0(1) = 0;
-
 %% calculation of total nutrient content at t=0, (to be conserved)
 n_algae_0 = p.volumes_cyl.*A0*p.q;
 n_dissolved_0 = p.volumes_cyl.*Rd0;
@@ -150,32 +145,25 @@ Rd = Rd0';
 Rs = Rs0';
 B = B0';
 y0 = [A(:); Rd(:); Rs(:); B(:)];
+I = zeros(p.Zn, p.Xn);
 
 %% Simulation of model
-tend = 10000; % end simulation time
+tend = 100000; % end simulation time
 t_span = [1:tend/40: tend]; % timespan of simulation. The intermediate steps tells ode15s when to save current state of the model.
 %t_span = [1:tend];
 miac = @(t,y)eventfun(t,y,p);
 %ode_opts = odeset('abstol' , 1e-9 , 'reltol' , 1e-9,'Events',miac, 'NonNegative',1:length(y0)); % All solution componens are set to be Non-negative, we don't want negative concentrations!
-%ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9, 'NonNegative',1:length(y0)); % 'Events',miac);
-%ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9 , 'Events', miac , 'NonNegative',(1:length(y0)));
-%ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9) , 'NonNegative',(1:length(y0)));
-%[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct(t,Y,p) , [0, inf] , y0 , ode_opts); % diffusion works in this version!
-%[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct(t,Y,p) , t_span , y0 , ode_opts); % diffusion works in this version!
+ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9, 'Events',miac); % 'Events',miac);
+%ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9);
+[t,Y_t] = ode15s( @(t,Y) dAdt_efficient(t,Y,p) , t_span , y0 , ode_opts); % diffusion works in this version!
+%[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_only(t,Y,p) , t_span , y0 , ode_opts); % diffusion works in this version!
 %[t,Y_t] = ode15s( @(t,Y) dAdt_alt(t,Y,p) , t_span , y0 , ode_opts); % diffusion works in this version!
 %[t,Y_t] = ode15s( @(t,Y) dAdt_alt(t,Y,p) , t_span , y0);
 
-
-% Version 2
-miac2 = @(t,y)eventfun_V2(t,y,p);
-ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9 , 'Events', miac2); % , 'NonNegative',(1:length(y0)));
-%[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct_V2(t,Y,p) , [0, inf] , y0 , ode_opts); 
-[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct_V2(t,Y,p) , t_span , y0 , ode_opts); 
-
 %% recording of simulation time & saving workspace
 simTime = toc;
-%  file_name = "2D_benthic_results_dx_" + num2str(p.dx) + "_dz_" + num2str(p.dz) + "_Xn_" + num2str(p.Xn) + "_Zn_" + num2str(p.Zn);
-%  save(file_name);
+ file_name = "2D_benthic_results_dx_" + num2str(p.dx) + "_dz_" + num2str(p.dz) + "_Xn_" + num2str(p.Xn) + "_Zn_" + num2str(p.Zn);
+ save(file_name);
 
 %% Extracting results
 
@@ -220,13 +208,13 @@ figureIndex = 1;
 %% Plot of simulation results
 % close all
 
-[X_vol_new,Y_vol_new] = grid_interpolation_fn(p);
+[X_vol_new,Y_vol_new] = grid_interpolation_fn(p,A);
 grid_data_A = griddata(p.X_vol,p.Z_vol, p.q.*A,X_vol_new,Y_vol_new);
-grid_data_Rd = griddata(p.X_vol,p.Z_vol, Rd,X_vol_new,Y_vol_new);
+grid_data_Rd = griddata(p.X_vol,p.Z_vol, p.q.*Rd,X_vol_new,Y_vol_new);
 
 
 % plot of algal density
-if(true)
+if(false)
     % Plots algal density where the values have been interpolated to
     % produce a smooth figure.
     figure(figureIndex)
@@ -251,7 +239,7 @@ if(true)
 end
 
 % plot of dissolved nutrient density
-if(true)
+if(false)
     figure(figureIndex)
     movegui(figureIndex,[2350 700]);
     figureIndex = figureIndex +1;
@@ -267,7 +255,7 @@ if(true)
 end
 
 % plot of sediment nutrient density
-if(true)
+if(false)
     % creating points for sediment plot
     sed_points = zeros(1,p.Xn-1);
     sed_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
@@ -281,7 +269,7 @@ if(true)
 end
 
 % plot of Benthic algal density [mgC/m^2]
-if(true)
+if(false)
     % creating points for benthic algae plot
     benth_points = zeros(1,p.Xn-1);
     benth_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
@@ -458,10 +446,10 @@ disp("portion of nutrients in benthic algae: " + num2str(perc_benthic));
 disp("_____________________________________________");
 
 %% video of plankton dynamics
-A_vid = true; % flags for videos, set to true if desired.
-Rd_vid = true;
-Rs_vid = true;
-Ab_vid = true;
+A_vid = false; % flags for videos, set to true if desired.
+Rd_vid = false;
+Rs_vid = false;
+Ab_vid = false;
 % creating points for sediment plot
 sed_points = zeros(1,p.Xn-1);
 sed_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
@@ -609,4 +597,7 @@ if(false) % set to false if no videos are desired.
     if(Rd_vid) close(Rd_video); end
     if(Rs_vid) close(Rs_video); end
     if(Ab_vid) close(Ab_video); end    
+end
+
+    end
 end

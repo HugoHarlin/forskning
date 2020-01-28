@@ -1,4 +1,4 @@
-function [output] = dAdt_efficient_correct_V2(t,Y,p)
+function [output] = dAdt_efficient_correct_V3_detritus(t,Y,p)
 % Returns the right hand side of the equation dAdt = r.h.s,
 % where the output is a column vector and the nodes are ordered
 % row by row, so that the first p.Xn nodes are the A values of the
@@ -6,7 +6,7 @@ function [output] = dAdt_efficient_correct_V2(t,Y,p)
 
 % function is used as input to ode15s
 
-% V2 implies that the boundary conditions at the bottom are changed.
+% V3 is the same as V2, with the added state variable organic detritus.
 % The benthic algae can only access nutrients from the water column
 % directly above the benthic layer, and cannot use the nutrients directly
 % in the sediment or the remineralized sediment directly.
@@ -15,23 +15,26 @@ efficient = true;
 
 %% reformatting input and calculation of light intensity etc.
 % separating the state variables from y
-A = Y(1:(p.Xn-1)*(p.Zn-1));
-Rd = Y((p.Xn-1)*(p.Zn-1)+1 : 2*(p.Xn-1)*(p.Zn-1));
-Rs = Y(2*(p.Xn-1)*(p.Zn-1) +1 : 2*(p.Xn-1)*(p.Zn-1) + (p.Xn-1));
-B = Y(2*(p.Xn-1)*(p.Zn-1) + (p.Xn-1) +1 : end);
+A = Y(1:(p.Xn-1)*(p.Zn-1)); % phytoplankton
+Rd = Y((p.Xn-1)*(p.Zn-1)+1 : 2*(p.Xn-1)*(p.Zn-1)); % dissolved nutrients
+D = Y(2*(p.Xn-1)*(p.Zn-1) +1 : 3*(p.Xn-1)*(p.Zn-1)); % ditritus
+Rs = Y(3*(p.Xn-1)*(p.Zn-1) +1 : 3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1)); % sedimented nutrients
+B = Y(3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1) +1 : end); % benthic algae
 
 A = reshape(A,[(p.Xn-1) (p.Zn-1)]);
 Rd = reshape(Rd,[(p.Xn-1) (p.Zn-1)]);
+D = reshape(D,[(p.Xn-1) (p.Zn-1)]);
 A = A';
 Rd = Rd';
+D = D';
 
 % Calculation of the light intensity at each grid element center
 I = zeros(p.Zn-1,p.Xn-1);
 for j = 1:p.Xn-1
     integral = 0;
     for i=1:p.Zn-1
-        integral = integral + p.Z(i,j) *A(i,j);
-        I(i,j) = p.I0 * exp(-p.k*integral -p.kbg*p.Z(i,j));
+        integral = integral + p.Z(i,j) *(p.kA*A(i,j) + p.kD*D(i,j));
+        I(i,j) = p.I0 * exp(-integral -p.kbg*p.Z(i,j));
     end
 end
 
@@ -49,6 +52,7 @@ G = p.Gmax .* min(Rd./(Rd+p.M), I./(I+p.H)); % New source term. The production i
 %% Diffusion and Convection, Bottom boundary condition
 dAdt = zeros(p.Zn-1, p.Xn-1);
 dRdt = zeros(p.Zn-1, p.Xn-1);
+dDdt = zeros(p.Zn-1, p.Xn-1);
 dRsdt = zeros(1,p.Xn-1);
 dBdt = zeros(1,p.Xn-1);
 
@@ -76,7 +80,7 @@ for j = 1:p.Xn-1 % xi
     % Bethic algae net growth
     
     nutrient_limited_growth =  p.Gmax_benth*B(j)*(Rd(i,j)/(Rd(i,j)+p.M_benth));
-    light_limited_growth = p.Gmax_benth./p.kB.*log((p.H_benth + I(i,j))/(p.H_benth + I(i,j).*exp(-p.k.*B(j))));
+    light_limited_growth = p.Gmax_benth./p.kB.*log((p.H_benth + I(i,j))/(p.H_benth + I(i,j).*exp(-p.kB.*B(j))));
     
     dBdt(j) = dBdt(j) + min(nutrient_limited_growth, light_limited_growth) - p.lbg_benth*B(j);
     
@@ -88,9 +92,11 @@ for j = 1:p.Xn-1 % xi
     % after the division by the element area below.
      dRsdt(j) =  dRsdt(j) + (1-p.benth_recycling)*p.q_benth.*p.lbg_benth*B(j);
     
-    % Algae sink into the sediment, dies and instantly becomes sedimented
-    % nutrients.
-    dRsdt(j) =  dRsdt(j) + p.v*p.death_rate*A(i,j)*p.q/p.L_bottom_cyl(j)*2*pi*p.W/(p.Xn-1).*(j-0.5).*p.dX_dXi_preCalc(i,j,4);
+    % Algae sinks into the sediment, dies and instantly becomes sedimented nutrients.
+    dRsdt(j) =  dRsdt(j) + p.vA*p.death_rate*A(i,j)*p.q/p.L_bottom_cyl(j)*2*pi*p.W/(p.Xn-1).*(j-0.5).*p.dX_dXi_preCalc(i,j,4);
+    
+    % Detritus sinks into the sediment, dies and instantly becomes sedimented  nutrients.
+    dRsdt(j) =  dRsdt(j) + p.vD*D(i,j)/p.L_bottom_cyl(j)*2*pi*p.W/(p.Xn-1).*(j-0.5).*p.dX_dXi_preCalc(i,j,4);
     
     
     if(efficient)
@@ -99,7 +105,7 @@ for j = 1:p.Xn-1 % xi
         
         nutrient_limited_flux =  p.q_benth*B(j)*p.Gmax_benth*(Rd(i,j)/(Rd(i,j)+p.M_benth)); % [mgP/ (m^2 day)]
         
-        light_limited_flux = p.q_benth.*p.Gmax./p.kB*log((p.H_benth + p.I(i,j))/(p.H_benth + p.I(i,j).*exp(-p.k.*B(j)))); % [mgP/ (m^2 day)]
+        light_limited_flux = p.q_benth.*p.Gmax./p.kB*log((p.H_benth + p.I(i,j))/(p.H_benth + p.I(i,j).*exp(-p.kB.*B(j)))); % [mgP/ (m^2 day)]
         benth_P_consumption = min(nutrient_limited_flux, light_limited_flux); %This is the total consumption of dissolved nutrients,
         
         
@@ -128,7 +134,6 @@ end
 
 dAdt = dAdt./p.volumes_cyl;
 dRdt = dRdt./p.volumes_cyl;
-% dRsdt = dRsdt./p.L_bottom_cyl;
 
 %% Source terms
 % Algae grow with net rate g - p.lbg, note that algae is measured in
@@ -146,10 +151,12 @@ dRdt = dRdt - p.q.*(G-p.lbg).*A;
 % transpose of matrices in order to use colon notation to reshape to vector form.
 dAdt = dAdt';
 dRdt = dRdt';
-output = [dAdt(:); dRdt(:); dRsdt(:); dBdt(:)]; % The output is a column vector with the derivatives of the state variables at each grid point.
+dDdt = dDdt';
+output = [dAdt(:); dRdt(:); dDdt(:); dRsdt(:); dBdt(:)]; % The output is a column vector with the derivatives of the state variables at each grid point.
 
 if(efficient)
-    % diffusion of algae and dissolved nutrients, sinking of algae
+    % diffusion of algae, dissolved nutrients and ditritus, sinking of
+    % algae and distritus.
     output = output + p.S*Y;
 end
 

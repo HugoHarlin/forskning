@@ -4,6 +4,11 @@ function [output] = dAdt_efficient_correct(t,Y,p)
 % row by row, so that the first p.Xn nodes are the A values of the
 % surface layer and so forth.
 
+% In this version benthic algae have three sources of nutrients: their own
+% respiration losses (governed by the recycling rate), the remineralization
+% flux from the sediment, and the dissolved nutrients in the watercolumn
+% above. 
+
 % function is used as input to ode15s
 
 % ONLY CYLINDRICAL COORDINATES - no cartesian implementation in this script
@@ -43,7 +48,6 @@ G = p.Gmax .* min(Rd./(Rd+p.M), I./(I+p.H)); % New source term. The production i
 % would imply a discrepancy in the underlying assumptions of growth which is
 %  inconsistent.
 
-
 %% COMMENT OUT THIS SECTION
 % it is only used for checking the stiffness matrix script.
 % dRdt_temp = zeros(p.Zn-1, p.Xn-1);
@@ -68,6 +72,8 @@ dRdt = zeros(p.Zn-1, p.Xn-1);
 dRsdt = zeros(1,p.Xn-1);
 dBdt = zeros(1,p.Xn-1);
 
+
+% Old implementation, turn on by setting efficient to 'false'
 if(~efficient)
     % Diffusion terms in cylindrical coordinates with grid transform. Boundary
     % conditions are incorporated in the integral functions defined at the end of the script.
@@ -165,7 +171,7 @@ dAdt = dAdt + (G - p.lbg).*A;
 % correspoding decrease in nutrients [mgP/m^3]
 dRdt = dRdt - p.q.*(G-p.lbg).*A;
 
-% Benthic Algae respire/die and a portion p.benth_recycling is bound in
+% Benthic Algae respire/die and a portion 1-p.benth_recycling is bound in
 % particulate form and is introduced into the sediment.
 dRsdt = dRsdt + (1-p.benth_recycling).*p.lbg_benth.*p.q_benth.*B';
 
