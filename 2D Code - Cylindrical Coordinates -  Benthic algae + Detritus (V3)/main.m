@@ -24,8 +24,8 @@ tic
 %% Model Parameters
 % all parameters are organized in a struct p for implementation convenience
 p = struct;
-p.dx = 1.0; % Radial Turbulent-diffusion coefficient [m^2 day^-1]
-p.dz = 1.0; % Vertical Turbulent-diffusion coefficient [m^2 day^-1]
+p.dx = 10.0; % Radial Turbulent-diffusion coefficient [m^2 day^-1]
+p.dz = 10.0; % Vertical Turbulent-diffusion coefficient [m^2 day^-1]
 p.I0 = 300; % Light intensity at the surface [micro-mol photons m^-2 s^-1]
 p.kA = 0.0003; % Specific light-attenuation coefficient of algal biomass [m^2 mg C^-1]
 p.kD = 0.0003; % Specific light-attenuation coefficient of detritus [m^2 mg C^-1]
@@ -41,9 +41,12 @@ p.H_benth = 120.0; % Half-saturation constant of light-dependent benthic algal p
 p.q = 0.0244; % Algal nutrient quota, Redfield ratio [mgP/mgC]
 p.q_benth =  0.0244; % Benthic algae nutrient quota, Redfield ratio [mgP/mgC]
 p.lbg_benth = 0.1; % Specific benthic algae maintenance respiration losses [day^-1]
-p.r =  0.000; % Specific mineralization rate of sedimented nutrients [day^-1]
+p.r =  0.02; % Specific mineralization rate of sedimented nutrients [day^-1]
 p.vA = 0.1; % Algal sinking speed [m day^-1]
-p.vD = 0.1; % detritus sinking speed [m day^-1]
+p.vD = 0.25; % detritus sinking speed [m day^-1]
+p.Ad = 0.02; % algal death rate [day^-1]
+p.Dbg = 0.02; % remineralization of detritus in the water column [day^-1]
+p.resus = 0.02; % resuspension rate of the detritus in the sediment [day^-1]
 p.death_rate = 1; % coefficient governing the proportion of sinking algae at the bottom that dies.
 % 0 = no death. 1 = all algae that would have sunk through the sediment dies.
 p.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
@@ -56,7 +59,7 @@ p.Zn = 16; % Number of grid-points (depth)
 p.Lmin = 0.1; % Minimum lake depth (depth at land-water interface) [m]
 p.Lmax = 20; % Maximum lake depth [m]
 p.W = 20; % Lake radius [m]
-p.alpha = 1.4; % Exponent governing the slope of the lake bottom
+p.alpha = 1.0; % Exponent governing the slope of the lake bottom
 
 % Lake Mesh, with an increasing depth from Lmin at the shore to Lmax
 % at the center of the lake (slope = alpha* (Lmin - Lmax)/W).
@@ -83,12 +86,12 @@ end
 p.X_vol = X_vol;
 p.Z_vol = Z_vol;
 
-% [vol_areas, L_bottom] = vol_areas_fn(p);
-% p.L_bottom = L_bottom;
+% [vol_areas, Area_bottom] = vol_areas_fn(p);
+% p.Area_bottom = Area_bottom;
 % p.vol_areas = vol_areas;
 
 p.volumes_cyl = vol_areas_cyl_3d_fn(p);
-p.L_bottom_cyl = L_bottom_cyl_fn(p);
+p.Area_bottom_cyl = Area_bottom_cyl_fn(p);
 
 
 %% Pre-evaluation of transform derivatives and creation of stiffness matrix
@@ -104,7 +107,7 @@ p.S = Stiffness_matrix(p);
 
 %% Inital Conditions
 
-A0 = 0.0*ones(p.Zn-1, p.Xn-1); % Initial Algal carbon density [mg C m^-3]
+A0 = 1.0*ones(p.Zn-1, p.Xn-1); % Initial Algal carbon density [mg C m^-3]
 %  A0(1,:)= 1.0;
 %  A0(:,3)= 1.0;
 %  A0(:,5)= 1.0;
@@ -121,7 +124,7 @@ A0 = 0.0*ones(p.Zn-1, p.Xn-1); % Initial Algal carbon density [mg C m^-3]
 %A0(1,:) = 10./p.volumes_cyl(1,:);
 %A0(15,15)=10;
 %A0(:,p.Xn-4) = 10;
-Rd0 = 0.000*ones(p.Zn-1, p.Xn-1); % initial concentration of dissolved nutrients [mg P m^-3]
+Rd0 = 1.000*ones(p.Zn-1, p.Xn-1); % initial concentration of dissolved nutrients [mg P m^-3]
 % A0(1,1) = 1;
 % Rd0(1,1) = 1;
 % Rd0(1,2) = 1.1;
@@ -131,9 +134,9 @@ Rd0 = 0.000*ones(p.Zn-1, p.Xn-1); % initial concentration of dissolved nutrients
 %Rd0(16,16) = 5;
 
 D0 = 0.000*ones(p.Zn-1, p.Xn-1); % initial concentration of detritus [mg P m^-3]
-D0(5,5) = 1;
+%D0(5,5) = 0;
 
-Rs0 = 0.0*ones(1, p.Xn-1); % initial concentration of sediment nutrient density [mg P m^-2]
+Rs0 = 1.0*ones(1, p.Xn-1); % initial concentration of sediment nutrient density [mg P m^-2]
 %Rs0(1) = 1;
 B0 = 0.00*ones(1, p.Xn-1); % initial concentration of benthic algal density [mg C m^-2]
 %B0(1) = 0;
@@ -142,8 +145,8 @@ B0 = 0.00*ones(1, p.Xn-1); % initial concentration of benthic algal density [mg 
 n_algae_0 = p.volumes_cyl.*A0*p.q;
 n_dissolved_0 = p.volumes_cyl.*Rd0;
 n_detritus_0 = p.volumes_cyl.*D0;
-n_sediment_0 = Rs0.*p.L_bottom_cyl;
-n_benthic_0 = B0.*p.q_benth.*p.L_bottom_cyl;
+n_sediment_0 = Rs0.*p.Area_bottom_cyl;
+n_benthic_0 = B0.*p.q_benth.*p.Area_bottom_cyl;
 
 p.ntot_algae_0  = sum(sum(n_algae_0));
 p.ntot_dissolved_0 = sum(sum(n_dissolved_0));
@@ -162,17 +165,17 @@ B = B0';
 y0 = [A(:); Rd(:); D(:); Rs(:); B(:)];
 
 %% Simulation of model
-tend = 10; % end simulation time
-t_span = [1:tend/40: tend]; % timespan of simulation. The intermediate steps tells ode15s when to save current state of the model.
+%tend = 100000; % end simulation time
+%t_span = [1:tend/20: tend]; % timespan of simulation. The intermediate steps tells ode15s when to save current state of the model.
 %t_span = [1:tend];
 miac = @(t,y)eventfun_V3(t,y,p);
 %ode_opts = odeset('abstol' , 1e-9 , 'reltol' , 1e-9,'Events',miac, 'NonNegative',1:length(y0)); % All solution componens are set to be Non-negative, we don't want negative concentrations!
 %ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9, 'NonNegative',1:length(y0)); % 'Events',miac);
 %ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9 , 'Events', miac , 'NonNegative',(1:length(y0)));
 %ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9) , 'NonNegative',(1:length(y0)));
-ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9 , 'Events', miac);% , 'NonNegative',(1:length(y0)));
-%[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct_V3_detritus(t,Y,p) , [0, inf] , y0 , ode_opts); 
-[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct_V3_detritus(t,Y,p) , t_span , y0 , ode_opts); 
+ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9 , 'Events', miac , 'NonNegative',(1:length(y0)));
+[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct_V3_detritus(t,Y,p) , [0, inf] , y0 , ode_opts); 
+%[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct_V3_detritus(t,Y,p) , t_span , y0 , ode_opts); 
 
 %% recording of simulation time & saving workspace
 simTime = toc;
@@ -198,8 +201,8 @@ D = D';
 n_algae_end = p.volumes_cyl.*A*p.q;
 n_dissolved_end = p.volumes_cyl.*Rd;
 n_detritus_end = p.volumes_cyl.*D;
-n_sediment_end = Rs.*p.L_bottom_cyl;
-n_benthic_end = B.*p.q_benth.*p.L_bottom_cyl;
+n_sediment_end = Rs.*p.Area_bottom_cyl;
+n_benthic_end = B.*p.q_benth.*p.Area_bottom_cyl;
 ntot_end =  sum(sum(n_algae_end)) + sum(sum(n_dissolved_end)) + sum(sum(n_detritus_end)) + sum(n_sediment_end) + sum(n_benthic_end);
 
 %% Algae nutrient and light limitation
@@ -495,7 +498,7 @@ sed_points = zeros(1,p.Xn-1);
 sed_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
 
 
-if(true) % set to false if no videos are desired.
+if(false) % set to false if no videos are desired.
     close all
     if(A_vid) A_video = VideoWriter('plankton.avi');                open(A_video); end
     if(Rd_vid) Rd_video = VideoWriter('dissolved_nutrients.avi');   open(Rd_video);end

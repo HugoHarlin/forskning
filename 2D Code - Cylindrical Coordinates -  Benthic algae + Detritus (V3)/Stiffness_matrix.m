@@ -3,8 +3,6 @@ function [S] = Stiffness_matrix(p)
 %% Stiffness matrix of the linearized system
 % assembles the mass matrix of the linearized system with integrated
 % boundary conditions.
-
-
 S = zeros(3*(p.Xn-1)*(p.Zn-1) + 2*(p.Xn-1));
 
 %% stiffness matrix for the algae
@@ -629,5 +627,42 @@ end
   temp2(2*length(temp(:))+1:3*length(temp(:)) ) = temp(:);
  S = S./temp2;
 
+ 
+ 
+ %% Source terms
+ 
+%  
+%  for i = 1:p.Zn-1 % eta
+%     for j = 1:p.Xn-1 % xi
+%         
+%         x_A = j+(i-1)*(p.Xn-1); % phytoplankton x-index
+%         y_A = j+(i-1)*(p.Xn-1); % phytoplankton z-index
+%         x_Rd = j+(i-1)*(p.Xn-1) + (p.Xn-1)*(p.Zn-1); % dissolved nutrient x-index
+%         y_Rd = j+(i-1)*(p.Xn-1) + (p.Xn-1)*(p.Zn-1); % dissolved nutrient z-index
+%         x_D = j+(i-1)*(p.Xn-1) + 2*(p.Xn-1)*(p.Zn-1); % detritus x-index
+%         y_D = j+(i-1)*(p.Xn-1) + 2*(p.Xn-1)*(p.Zn-1); % detritus z-index
+%         
+%         % Algal growth and death [mgC/m^3]
+%         S(x_A,y_A) = S(x_A,y_A) + (G - p.lbg);
+%         
+%         % correspoding decrease in nutrients [mgP/m^3]
+%         S(x_Rd,y_Rd) = S(x_Rd,y_Rd) - p.q.*(G-p.lbg).*A;
+%         
+%         
+%     end
+%  end
+%  
+%  % Algae grow with net rate g - p.lbg, note that algae is measured in
+% % [mgC/m^3]
+% dAdt = dAdt + (G - p.lbg).*A;
+% 
+% 
+% 
+% % remineralization of detritus in the water column
+%  dDdt = dDdt - p.Dbg*D;
+%  dRdt = dRdt +  p.Dbg*D;
+
+ 
+ 
 end
 
