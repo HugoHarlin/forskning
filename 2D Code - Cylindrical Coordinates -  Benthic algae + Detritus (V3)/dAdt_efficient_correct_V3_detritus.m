@@ -30,11 +30,13 @@ D = D';
 
 % Calculation of the light intensity at each grid element center
 I = zeros(p.Zn-1,p.Xn-1);
-%integral = 0;
 for j = 1:p.Xn-1
     integral = 0;
-    for i=1:p.Zn-1
-        integral = integral + p.Z(i,j) *(p.kA*A(i,j) + p.kD*D(i,j));
+    integral = integral + p.Z_vol(1,j)*(p.kA*A(1,j) + p.kD*D(1,j));
+    I(1,j) = p.I0 * exp(-integral -p.kbg*p.Z(1,j));
+    
+    for i=2:p.Zn-1
+        integral = integral + (p.Z_vol(i,j)-p.Z_vol(i-1,j)) *(p.kA*A(i,j) + p.kD*D(i,j));
         I(i,j) = p.I0 * exp(-integral -p.kbg*p.Z(i,j));
     end
 end
@@ -86,7 +88,7 @@ for j = 1:p.Xn-1 % xi
     dBdt(j) = dBdt(j) + min(nutrient_limited_growth, light_limited_growth) - p.lbg_benth*B(j);
     
     % Nutrients in the sediment remineralize into the lake.
-     dRsdt(j) =  dRsdt(j) -Rs(j)*p.r;
+    dRsdt(j) =  dRsdt(j) -Rs(j)*p.r;
     
     % Benthic Algae respire/die and a portion p.benth_recycling is bound in
     % particulate form and is introduced into the sediment. This is handled
@@ -102,8 +104,8 @@ for j = 1:p.Xn-1 % xi
     % Detritus is resuspended into the water
     dRsdt(j) =  dRsdt(j) - p.resus *Rs(j);
     dDdt(i,j) = dDdt(i,j) +  p.resus*Rs(j)*p.Area_bottom_cyl(j);
-
-
+    
+    
     if(efficient)
         %     %%%%% net flux of dissolved nutrients into the lake from the sediment and consumption by the benthic algae   %%%%%%%%%%%%%%%%%%%%%%%
         %net_flux =   p.benth_recycling*B(j)*p.lbg_benth*p.q_benth + p.r*Rs(j) - p.q*benthic_growth;
@@ -115,10 +117,10 @@ for j = 1:p.Xn-1 % xi
         net_flux = p.r*Rs(j) +  p.benth_recycling*p.q_benth.*p.lbg_benth*B(j) - benth_P_consumption;
         
         dRdt(i,j) =   dRdt(i,j) + net_flux*p.Area_bottom_cyl(j); % the net flux here has the units [mg P/ (m^2 day)], and is multiplied by the area of the bttom segment to yield
-                                                              % a change [mg P/ day]. Division by the element volume yields the sought change in concentration.
-                                    
-                                                
-                                                             
+        % a change [mg P/ day]. Division by the element volume yields the sought change in concentration.
+        
+        
+        
     end
     
     
@@ -146,8 +148,8 @@ dAdt = dAdt + (G - p.lbg).*A;
 dRdt = dRdt - p.q.*(G-p.lbg).*A;
 
 % remineralization of detritus in the water column
- dDdt = dDdt - p.Dbg*D;
- dRdt = dRdt +  p.Dbg*D;
+dDdt = dDdt - p.Dbg*D;
+dRdt = dRdt +  p.Dbg*D;
 
 %% reshaping matrices for output
 % transpose of matrices in order to use colon notation to reshape to vector form.

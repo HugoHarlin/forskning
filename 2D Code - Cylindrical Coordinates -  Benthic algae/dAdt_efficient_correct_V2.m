@@ -29,8 +29,11 @@ Rd = Rd';
 I = zeros(p.Zn-1,p.Xn-1);
 for j = 1:p.Xn-1
     integral = 0;
-    for i=1:p.Zn-1
-        integral = integral + p.Z(i,j) *A(i,j);
+    integral = integral + p.Z_vol(1,j) *A(1,j);
+    I(1,j) = p.I0 * exp(-p.k*integral -p.kbg*p.Z(1,j));
+    
+    for i=2:p.Zn-1
+        integral = integral + (p.Z_vol(i,j)-p.Z_vol(i-1,j)) *A(i,j);
         I(i,j) = p.I0 * exp(-p.k*integral -p.kbg*p.Z(i,j));
     end
 end

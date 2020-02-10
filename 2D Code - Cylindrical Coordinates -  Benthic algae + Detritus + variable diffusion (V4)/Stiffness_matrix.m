@@ -33,12 +33,12 @@ for i = 1:p.Zn-1 % eta
                 % A simple forward difference is used to approximate dA_dXi,
                 % dA_dXi =  A(i,j+1) - A(i,j).
                 
-                scale_factor = 2*pi*p.W/(p.Xn-1).*j .* 0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/dX_dXi(p,i-0.5,j)*dZ_dEta(p,i-0.5,j);
+                scale_factor = 2*pi*p.W/(p.Xn-1).*j .* 0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/abs(dX_dXi(p,i-0.5,j))*dZ_dEta(p,i-0.5,j);
                 
                 S(x,y) = S(x,y) - scale_factor;
                 S(x,y+1) = S(x,y+1) + scale_factor;
                 
-                scale_factor = -2*pi*p.W/(p.Xn-1).*j .*  0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/dX_dXi(p,i-0.5,j)*dZ_dXi(p,i-0.5,j)*0.25;
+                scale_factor = -2*pi*p.W/(p.Xn-1).*j .*  0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/abs(dX_dXi(p,i-0.5,j))*dZ_dXi(p,i-0.5,j)*0.25;
                 
                 if(i ==  p.Zn-1) % if we are on the bottom border, we have to change our derivative quadrature accordingly
                     % dA_dEta = 0.25*(A(i,j) + A(i,j+1) - A(i-1,j) - A(i-1,j+1));
@@ -127,11 +127,11 @@ for i = 1:p.Zn-1 % eta
                 %    (p.dZ_dEta_preCalc(i,j,3) .* dA_dXi - ...
                 %    p.dZ_dXi_preCalc(i,j,3) * dA_dEta_3(i,j,p,A));
                 
-                scale_factor = -2*pi*p.W/(p.Xn-1).*(j-1) .*  0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/dX_dXi(p,i-0.5,j-1)*dZ_dEta(p,i-0.5,j-1);
+                scale_factor = -2*pi*p.W/(p.Xn-1).*(j-1) .*  0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/abs(dX_dXi(p,i-0.5,j-1))*dZ_dEta(p,i-0.5,j-1);
                 S(x,y) = S(x,y) + scale_factor;
                 S(x,y-1) = S(x,y-1) - scale_factor;
                 
-                scale_factor =  2*pi*p.W/(p.Xn-1).*(j-1) .*  0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/dX_dXi(p,i-0.5,j-1)*dZ_dXi(p,i-0.5,j-1)*0.25;
+                scale_factor =  2*pi*p.W/(p.Xn-1).*(j-1) .*  0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/abs(dX_dXi(p,i-0.5,j-1))*dZ_dXi(p,i-0.5,j-1)*0.25;
                 
                 if(i ==  p.Zn-1) % if we are on the bottom border, we have to change our derivative quadrature accordingly
                     %dA_dEta = 0.25*(A(i,j) + A(i,j-1) - A(i-1,j) - A(i-1,j-1));
@@ -243,12 +243,12 @@ for i = 1:p.Zn-1 % eta
                 % A simple forward difference is used to approximate dA_dXi,
                 % dRd_dXi =  Rd(i,j+1) - Rd(i,j).
                 
-                scale_factor = 2*pi*p.W/(p.Xn-1).*j .*  0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/dX_dXi(p,i-0.5,j)*dZ_dEta(p,i-0.5,j);
+                scale_factor = 2*pi*p.W/(p.Xn-1).*j.*0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/abs(dX_dXi(p,i-0.5,j))*dZ_dEta(p,i-0.5,j);
                 
                 S(x,y) = S(x,y) - scale_factor;
                 S(x,y+1) = S(x,y+1) + scale_factor;
                 
-                scale_factor = -2*pi*p.W/(p.Xn-1).*j .*  0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/dX_dXi(p,i-0.5,j)*dZ_dXi(p,i-0.5,j)*0.25;
+                scale_factor = -2*pi*p.W/(p.Xn-1).*j .*  0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/abs(dX_dXi(p,i-0.5,j))*dZ_dXi(p,i-0.5,j)*0.25;
                 
                 if(i ==  p.Zn-1) % if we are on the bottom border, we have to change our derivative quadrature accordingly
                     % dRd_dEta = 0.25*(Rd(i,j) + Rd(i,j+1) - Rd(i-1,j) - Rd(i-1,j+1));
@@ -330,11 +330,11 @@ for i = 1:p.Zn-1 % eta
                 %    (p.dZ_dEta_preCalc(i,j,3) .* dA_dXi - ...
                 %    p.dZ_dXi_preCalc(i,j,3) * dA_dEta_3(i,j,p,A));
                 
-                scale_factor = -2*pi*p.W/(p.Xn-1).*(j-1) .*  0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/dX_dXi(p,i-0.5,j-1)*dZ_dEta(p,i-0.5,j-1);
+                scale_factor = -2*pi*p.W/(p.Xn-1).*(j-1) .*  0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/abs(dX_dXi(p,i-0.5,j-1))*dZ_dEta(p,i-0.5,j-1);
                 S(x,y) = S(x,y) + scale_factor;
                 S(x,y-1) = S(x,y-1) - scale_factor;
                 
-                scale_factor =  2*pi*p.W/(p.Xn-1).*(j-1) .* 0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/dX_dXi(p,i-0.5,j-1)*dZ_dXi(p,i-0.5,j-1)*0.25;
+                scale_factor =  2*pi*p.W/(p.Xn-1).*(j-1) .* 0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/abs(dX_dXi(p,i-0.5,j-1))*dZ_dXi(p,i-0.5,j-1)*0.25;
                 
                 if(i ==  p.Zn-1) % if we are on the bottom border, we have to change our derivative quadrature accordingly
                     %dA_dEta = 0.25*(A(i,j) + A(i,j-1) - A(i-1,j) - A(i-1,j-1));
@@ -437,12 +437,12 @@ for i = 1:p.Zn-1 % eta
                 % A simple forward difference is used to approximate dA_dXi,
                 % dA_dXi =  A(i,j+1) - A(i,j).
                 
-                scale_factor = 2*pi*p.W/(p.Xn-1).*j .*  0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/dX_dXi(p,i-0.5,j)*dZ_dEta(p,i-0.5,j);
+                scale_factor = 2*pi*p.W/(p.Xn-1).*j .*  0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/abs(dX_dXi(p,i-0.5,j))*dZ_dEta(p,i-0.5,j);
                 
                 S(x,y) = S(x,y) - scale_factor;
                 S(x,y+1) = S(x,y+1) + scale_factor;
                 
-                scale_factor = -2*pi*p.W/(p.Xn-1).*j .*  0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/dX_dXi(p,i-0.5,j)*dZ_dXi(p,i-0.5,j)*0.25;
+                scale_factor = -2*pi*p.W/(p.Xn-1).*j .*  0.5*(p.dx(i,j)+p.dx(i,j+1)).* 1/abs(dX_dXi(p,i-0.5,j))*dZ_dXi(p,i-0.5,j)*0.25;
                 
                 if(i ==  p.Zn-1) % if we are on the bottom border, we have to change our derivative quadrature accordingly
                     % dA_dEta = 0.25*(A(i,j) + A(i,j+1) - A(i-1,j) - A(i-1,j+1));
@@ -531,11 +531,11 @@ for i = 1:p.Zn-1 % eta
                 %    (p.dZ_dEta_preCalc(i,j,3) .* dA_dXi - ...
                 %    p.dZ_dXi_preCalc(i,j,3) * dA_dEta_3(i,j,p,A));
                 
-                scale_factor = -2*pi*p.W/(p.Xn-1).*(j-1) .*  0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/dX_dXi(p,i-0.5,j-1)*dZ_dEta(p,i-0.5,j-1);
+                scale_factor = -2*pi*p.W/(p.Xn-1).*(j-1) .*  0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/abs(dX_dXi(p,i-0.5,j-1))*dZ_dEta(p,i-0.5,j-1);
                 S(x,y) = S(x,y) + scale_factor;
                 S(x,y-1) = S(x,y-1) - scale_factor;
                 
-                scale_factor =  2*pi*p.W/(p.Xn-1).*(j-1) .*  0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/dX_dXi(p,i-0.5,j-1)*dZ_dXi(p,i-0.5,j-1)*0.25;
+                scale_factor =  2*pi*p.W/(p.Xn-1).*(j-1) .*  0.5*(p.dx(i,j)+p.dx(i,j-1)).* 1/abs(dX_dXi(p,i-0.5,j-1))*dZ_dXi(p,i-0.5,j-1)*0.25;
                 
                 if(i ==  p.Zn-1) % if we are on the bottom border, we have to change our derivative quadrature accordingly
                     %dA_dEta = 0.25*(A(i,j) + A(i,j-1) - A(i-1,j) - A(i-1,j-1));
@@ -627,8 +627,6 @@ end
   temp2(2*length(temp(:))+1:3*length(temp(:)) ) = temp(:);
  S = S./temp2;
 
- 
- 
  %% Source terms
  
 %  

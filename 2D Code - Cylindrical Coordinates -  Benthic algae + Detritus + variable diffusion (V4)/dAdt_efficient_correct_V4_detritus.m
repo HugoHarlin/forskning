@@ -1,4 +1,4 @@
-function [output] = dAdt_efficient_correct_V4_detritus(t,Y,p)
+function [output] = rhs_function(t,Y,p)
 % Returns the right hand side of the equation dAdt = r.h.s,
 % where the output is a column vector and the nodes are ordered
 % row by row, so that the first p.Xn nodes are the A values of the
@@ -6,14 +6,11 @@ function [output] = dAdt_efficient_correct_V4_detritus(t,Y,p)
 
 % function is used as input to ode15s
 
-% V3 is the same as V2, with the added state variable organic detritus.
-% The benthic algae can only access nutrients from the water column
-% directly above the benthic layer, and cannot use the nutrients directly
-% in the sediment or the remineralized sediment directly.
+% Version 4 - detritus + variable diffusion coefficients.
 
-efficient = true;
+constant_resuspension = true;
 
-%% reformatting input and calculation of light intensity etc.
+%% reformatting input
 % separating the state variables from y
 A = Y(1:(p.Xn-1)*(p.Zn-1)); % phytoplankton
 Rd = Y((p.Xn-1)*(p.Zn-1)+1 : 2*(p.Xn-1)*(p.Zn-1)); % dissolved nutrients
@@ -28,16 +25,23 @@ A = A';
 Rd = Rd';
 D = D';
 
-% Calculation of the light intensity at each grid element center
+%% Calculation of the light intensity at each grid element center
+
 I = zeros(p.Zn-1,p.Xn-1);
-%integral = 0;
 for j = 1:p.Xn-1
     integral = 0;
-    for i=1:p.Zn-1
-        integral = integral + p.Z(i,j) *(p.kA*A(i,j) + p.kD*D(i,j));
-        I(i,j) = p.I0 * exp(-integral -p.kbg*p.Z(i,j));
+    
+        integral = integral + p.Z(2,j) *(p.kA*A(1,j) + p.kD*D(1,j)); 
+        I(1,j) = p.I0 * exp(-integral -p.kbg*p.Z(2,j)); 
+        
+        
+    for i=2:p.Zn-1
+        integral = integral + (p.Z(i+1,j)-p.Z(i,j)) *(p.kA*A(i,j) + p.kD*D(i,j));
+        I(i,j) = p.I0 * exp(-integral -p.kbg*p.Z(i+1,j)); 
     end
 end
+
+%I = p.I0.*exp(- p.kA.*p.I_matrix*A - p.kD.*p.I_matrix*D - p.kbg*p.Z_vol);
 
 p.I = I;
 % Calculation of the algal production G(R,I)
@@ -57,26 +61,26 @@ dDdt = zeros(p.Zn-1, p.Xn-1);
 dRsdt = zeros(1,p.Xn-1);
 dBdt = zeros(1,p.Xn-1);
 
-if(~efficient)
-    % Diffusion terms in cylindrical coordinates with grid transform. Boundary
-    % conditions are incorporated in the integral functions defined at the end of the script.
-    for j = 1:p.Xn-1 % xi
-        for i = 1:p.Zn-1 % eta
-            % Diffusion and sinking of algae with  BC:s
-            
-            dAdt(i,j) = integral_A_1(i,j,p,A) + integral_A_2(i,j,p,A) + ...
-                integral_A_3(i,j,p,A) + integral_A_4(i,j,p,A);
-            
-            %diffusion of nutrients with BC:s
-            dRdt(i,j) = integral_Rd_1(i,j,p,Rd) + integral_Rd_2(i,j,p,Rd) + ...
-                integral_Rd_3(i,j,p,Rd) + integral_Rd_4(i,j,p,Rd,Rs,B);
-            
-        end
-    end
-end
+% if(~efficient)
+%     % Diffusion terms in cylindrical coordinates with grid transform. Boundary
+%     % conditions are incorporated in the integral functions defined at the end of the script.
+%     for j = 1:p.Xn-1 % xi
+%         for i = 1:p.Zn-1 % eta
+%             % Diffusion and sinking of algae with  BC:s
+%             
+%             dAdt(i,j) = integral_A_1(i,j,p,A) + integral_A_2(i,j,p,A) + ...
+%                 integral_A_3(i,j,p,A) + integral_A_4(i,j,p,A);
+%             
+%             %diffusion of nutrients with BC:s
+%             dRdt(i,j) = integral_Rd_1(i,j,p,Rd) + integral_Rd_2(i,j,p,Rd) + ...
+%                 integral_Rd_3(i,j,p,Rd) + integral_Rd_4(i,j,p,Rd,Rs,B);
+%             
+%         end
+%     end
+% end
 
 % Bottom sediment interaction and benthic algal growth
-i = p.Zn-1;
+i = p.Zn-1; % eta
 for j = 1:p.Xn-1 % xi
     % Bethic algae net growth
     
@@ -86,7 +90,7 @@ for j = 1:p.Xn-1 % xi
     dBdt(j) = dBdt(j) + min(nutrient_limited_growth, light_limited_growth) - p.lbg_benth*B(j);
     
     % Nutrients in the sediment remineralize into the lake.
-     dRsdt(j) =  dRsdt(j) -Rs(j)*p.r;
+    dRsdt(j) =  dRsdt(j) -Rs(j)*p.r;
     
     % Benthic Algae respire/die and a portion p.benth_recycling is bound in
     % particulate form and is introduced into the sediment. This is handled
@@ -99,12 +103,16 @@ for j = 1:p.Xn-1 % xi
     % Detritus sinks into the sediment, dies and instantly becomes sedimented  nutrients.
     dRsdt(j) =  dRsdt(j) + p.vD*D(i,j)/p.Area_bottom_cyl(j)*2*pi*p.W/(p.Xn-1).*(j-0.5).*p.dX_dXi_preCalc(i,j,4);
     
-    % Detritus is resuspended into the water
-    dRsdt(j) =  dRsdt(j) - p.resus *Rs(j);
-    dDdt(i,j) = dDdt(i,j) +  p.resus*Rs(j)*p.Area_bottom_cyl(j);
-
-
-    if(efficient)
+    
+    if(constant_resuspension) % if set to true, the resuspension rate is constant. Otherwise it is depth dependent
+        % Detritus is resuspended into the water
+        dRsdt(j) =  dRsdt(j) - p.resus*Rs(j);
+        dDdt(i,j) = dDdt(i,j) +  p.resus*Rs(j)*p.Area_bottom_cyl(j);
+    else % depth dependent resuspension
+        dRsdt(j) =  dRsdt(j) - p.resus_depth(j).*Rs(j);
+        dDdt(i,j) = dDdt(i,j) +  p.resus_depth(j)*Rs(j)*p.Area_bottom_cyl(j);
+    end
+    
         %     %%%%% net flux of dissolved nutrients into the lake from the sediment and consumption by the benthic algae   %%%%%%%%%%%%%%%%%%%%%%%
         %net_flux =   p.benth_recycling*B(j)*p.lbg_benth*p.q_benth + p.r*Rs(j) - p.q*benthic_growth;
         
@@ -115,11 +123,8 @@ for j = 1:p.Xn-1 % xi
         net_flux = p.r*Rs(j) +  p.benth_recycling*p.q_benth.*p.lbg_benth*B(j) - benth_P_consumption;
         
         dRdt(i,j) =   dRdt(i,j) + net_flux*p.Area_bottom_cyl(j); % the net flux here has the units [mg P/ (m^2 day)], and is multiplied by the area of the bttom segment to yield
-                                                              % a change [mg P/ day]. Division by the element volume yields the sought change in concentration.
-                                    
-                                                
-                                                             
-    end
+        % a change [mg P/ day]. Division by the element volume yields the sought change in concentration.
+        
     
     
 end
@@ -149,8 +154,8 @@ dRdt = dRdt - p.q.*(G-p.lbg_A).*A;
 dDdt = dDdt + p.q*p.Ad.*A;
 
 % remineralization of detritus in the water column
- dDdt = dDdt - p.Dbg*D;
- dRdt = dRdt +  p.Dbg*D;
+dDdt = dDdt - p.Dbg*D;
+dRdt = dRdt +  p.Dbg*D;
 
 %% reshaping matrices for output
 % transpose of matrices in order to use colon notation to reshape to vector form.
@@ -159,15 +164,13 @@ dRdt = dRdt';
 dDdt = dDdt';
 output = [dAdt(:); dRdt(:); dDdt(:); dRsdt(:); dBdt(:)]; % The output is a column vector with the derivatives of the state variables at each grid point.
 
-if(efficient)
     % diffusion of algae, dissolved nutrients and ditritus, sinking of
     % algae and distritus.
     output = output + p.S*Y;
-end
 
 end
 
-%% Support functions
+%% Support functions - These aren't used in the current version.
 %%% Line integrals Algae %%%
 function [output] = integral_A_1(i,j,p,A) % Integral of right side.  j=xi, i=eta
 

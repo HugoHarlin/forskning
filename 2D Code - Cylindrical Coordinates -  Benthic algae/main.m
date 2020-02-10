@@ -24,8 +24,8 @@ tic
 %% Model Parameters
 % all parameters are organized in a struct p for implementation convenience
 p = struct;
-p.dx = 10.0; % Radial Turbulent-diffusion coefficient [m^2 day^-1]
-p.dz = 10.0; % Vertical Turbulent-diffusion coefficient [m^2 day^-1]
+p.dx = 1.0; % Radial Turbulent-diffusion coefficient [m^2 day^-1]
+p.dz = 1.0; % Vertical Turbulent-diffusion coefficient [m^2 day^-1]
 p.I0 = 300; % Light intensity at the surface [micro-mol photons m^-2 s^-1]
 p.k = 0.0003; % Specific light-attenuation coefficient of algal biomass [m^2 mg C^-1]
 p.kB = 0.0003; % Specific light-attenuation coefficient of Benthic biomass [m^2 mg C^-1]
@@ -49,8 +49,8 @@ p.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrien
                        
 %% Lake topology and Mesh
 % Quantities relating to system size
-p.Xn = 16; % Number of grid-points (width)
-p.Zn = 16; % Number of grid-points (depth)
+p.Xn = 21; % Number of grid-points (width)
+p.Zn = 21; % Number of grid-points (depth)
 p.Lmin = 0.1; % Minimum lake depth (depth at land-water interface) [m]
 p.Lmax = 20; % Maximum lake depth [m]
 p.W = 20; % Lake radius [m]
@@ -101,8 +101,8 @@ p.dZ_dEta_preCalc = dY_dEta_preCalc;
 
 %% Inital Conditions
 
-A0 = 0.0*ones(p.Zn-1, p.Xn-1); % Initial Algal carbon density [mg C m^-3]
-  A0(1,:)= 1.0;
+A0 = 1.0*ones(p.Zn-1, p.Xn-1); % Initial Algal carbon density [mg C m^-3]
+ % A0(1,:)= 1.0;
 %  A0(:,3)= 1.0;
 %  A0(:,5)= 1.0;
 %  A0(:,7)= 1.0;
@@ -118,17 +118,17 @@ A0 = 0.0*ones(p.Zn-1, p.Xn-1); % Initial Algal carbon density [mg C m^-3]
 %A0(1,:) = 10./p.volumes_cyl(1,:);
 %A0(15,15)=10;
 %A0(:,p.Xn-4) = 10;
-Rd0 = 1.000*ones(p.Zn-1, p.Xn-1); % initial concentration of dissolved nutrients [mg P m^-3]
+Rd0 = 10.000*ones(p.Zn-1, p.Xn-1); % initial concentration of dissolved nutrients [mg P m^-3]
 % A0(1,1) = 1;
 % Rd0(1,1) = 1;
 % Rd0(1,2) = 1.1;
- Rd0(5,5) = 1.0;
+% Rd0(5,5) = 1.0;
 % Rd0(2,2) = 2;
 % Rd0(5,5) = 1;
 %Rd0(16,16) = 5;
 Rs0 = 1.0*ones(1, p.Xn-1); % initial concentration of sediment nutrient density [mg P m^-2]
 %Rs0(1) = 1;
-B0 = 0.00*ones(1, p.Xn-1); % initial concentration of benthic algal density [mg C m^-2]
+B0 = 1.00*ones(1, p.Xn-1); % initial concentration of benthic algal density [mg C m^-2]
 %B0(1) = 0;
 
 %% calculation of total nutrient content at t=0, (to be conserved)
@@ -152,8 +152,8 @@ B = B0';
 y0 = [A(:); Rd(:); Rs(:); B(:)];
 
 %% Simulation of model
-tend = 10000; % end simulation time
-t_span = [1:tend/40: tend]; % timespan of simulation. The intermediate steps tells ode15s when to save current state of the model.
+%tend = 10000; % end simulation time
+%t_span = [1:tend/40: tend]; % timespan of simulation. The intermediate steps tells ode15s when to save current state of the model.
 %t_span = [1:tend];
 miac = @(t,y)eventfun(t,y,p);
 %ode_opts = odeset('abstol' , 1e-9 , 'reltol' , 1e-9,'Events',miac, 'NonNegative',1:length(y0)); % All solution componens are set to be Non-negative, we don't want negative concentrations!
@@ -168,9 +168,9 @@ miac = @(t,y)eventfun(t,y,p);
 
 % Version 2
 miac2 = @(t,y)eventfun_V2(t,y,p);
-ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9 , 'Events', miac2); % , 'NonNegative',(1:length(y0)));
-%[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct_V2(t,Y,p) , [0, inf] , y0 , ode_opts); 
-[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct_V2(t,Y,p) , t_span , y0 , ode_opts); 
+ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9 , 'Events', miac2 , 'NonNegative',(1:length(y0)));
+[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct_V2(t,Y,p) , [0, inf] , y0 , ode_opts); 
+%[t,Y_t] = ode15s( @(t,Y) dAdt_efficient_correct_V2(t,Y,p) , t_span , y0 , ode_opts); 
 
 %% recording of simulation time & saving workspace
 simTime = toc;
@@ -467,7 +467,7 @@ sed_points = zeros(1,p.Xn-1);
 sed_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
 
 
-if(false) % set to false if no videos are desired.
+if(true) % set to false if no videos are desired.
     close all
     if(A_vid) A_video = VideoWriter('plankton.avi');                open(A_video); end
     if(Rd_vid) Rd_video = VideoWriter('dissolved_nutrients.avi');   open(Rd_video);end
@@ -476,7 +476,7 @@ if(false) % set to false if no videos are desired.
     %axis tight manual
     set(gca,'nextplot','replacechildren');
     
-    for t = 1:1:length(Y_t(:,1))
+    for t = 1:10:length(Y_t(:,1))
         % Extracting state variables
         if(A_vid)
             A = Y_t(t,1:(p.Xn-1)*(p.Zn-1));
@@ -504,10 +504,11 @@ if(false) % set to false if no videos are desired.
             
             
             h6 = axes;
-            grid_data = griddata(p.X_vol,p.Z_vol, A,X_vol_new,Y_vol_new);
-            surf(X_vol_new,Y_vol_new,grid_data ,  'edgecolor','none')
+            %grid_data = griddata(p.X_vol,p.Z_vol, A,X_vol_new,Y_vol_new);
+            %surf(X_vol_new,Y_vol_new,grid_data ,  'edgecolor','none');
             %caxis([0,max(max(A0))]);
-            %surf(p.X_vol, p.Z_vol, A, 'edgecolor','none');
+            surf(p.X_vol, p.Z_vol, A, 'edgecolor','none');
+            shading interp
             grid off
             ylabel("Depth [m]");
             xlabel("distance from lake center [m]");
@@ -539,9 +540,10 @@ if(false) % set to false if no videos are desired.
             movegui(f2,[2350 700]);
             clf(f2);
             h6 = axes;
-            grid_data = griddata(p.X_vol,p.Z_vol, Rd,X_vol_new,Y_vol_new);
-            %surf(p.X_vol, p.Z_vol, Rd);
-            surf(X_vol_new,Y_vol_new,grid_data ,  'edgecolor','none')
+            %grid_data = griddata(p.X_vol,p.Z_vol, Rd,X_vol_new,Y_vol_new);
+            %surf(X_vol_new,Y_vol_new,grid_data ,  'edgecolor','none')
+            surf(p.X_vol, p.Z_vol, Rd);
+            shading interp
             grid off
             ylabel("Depth [m]");
             xlabel("distance from lake center [m]");

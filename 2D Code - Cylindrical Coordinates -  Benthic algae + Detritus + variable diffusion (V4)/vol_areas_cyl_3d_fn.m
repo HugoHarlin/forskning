@@ -10,13 +10,13 @@ for j=1:p.Xn-1 % xi
 for i =1:p.Zn-1 % eta
     
         %n_A = A(i,j);
-        % the total concentration is multiplied bZ the area of the element,
-        % which is calculated with a formula that works for an arbitrarilZ
-        % shaped polZgon (that doesn't intersect itself) with four vertices:
+        % the total concentration is multiplied by the area of the element,
+        % which is calculated with a formula that works for an arbitrarily
+        % shaped polygon (that doesn't intersect itself) with four vertices:
         % A = abs ( (x1*Z2 - Z1*x2) + (x2*Z3 - Z2*x3) + ... + (xn*Z1 - Zn*x1)) /2
         % where the index is the numbering of the nodes in an anticlockwise
-        % order, starting node is arbitrarZ.
-        % https://www.mathopenref.com/coordpolZgonarea.html
+        % order, starting node is arbitrary.
+        % https://www.mathopenref.com/coordpolygonarea.html
        % temp2 = 0;
        % temp2 = temp2 + p.X(i,j)*p.Z(i,j+1) - p.X(i,j+1)*p.Z(i,j) + ...
        %     p.X(i,j+1)*p.Z(i+1,j+1) - p.X(i+1,j+1)*p.Z(i,j+1) + ...
