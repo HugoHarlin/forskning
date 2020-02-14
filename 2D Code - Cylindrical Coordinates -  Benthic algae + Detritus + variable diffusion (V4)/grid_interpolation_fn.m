@@ -1,12 +1,12 @@
-function [X_vol_new,Y_vol_new] = grid_interpolation_fn(p)
+function [X_vol_new,Y_vol_new] = grid_interpolation_fn(p,res_x,res_z)
 %% Mesh generator
 %Generates finer mesh for interpolation of results, makes for nicer plots.
 %
 % Hugo Harlin 2019
 
 % Quantities relating to system size
-p.Xn_new = 201; % Number of grid-points (width)
-p.Yn_new = 201; % Number of grid-points (depth)
+p.Xn_new = res_x+1; % Number of grid-points (width)
+p.Yn_new = res_z+1; % Number of grid-points (depth)
 
 % Lake Mesh, with an increasing depth from Lmin at the shore to Lmax
 % at the center of the lake ( slope = alpha* (Lmin - Lmax)/W  ).

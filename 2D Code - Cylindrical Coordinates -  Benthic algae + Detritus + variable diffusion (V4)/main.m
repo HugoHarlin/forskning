@@ -58,12 +58,12 @@ p.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrien
 
 %% Lake topology and Mesh
 % Quantities relating to system size
-p.Xn   = 5;   % Number of grid-points (width)
-p.Zn   = 5;   % Number of grid-points (depth)
-p.Lmin = 5;  % Minimum lake depth (depth at land-water interface) [m]
-p.Lmax = 10;   % Maximum lake depth [m]
-p.W    = 10;   % Lake radius [m]
-p.alpha = 1; % Exponent governing the slope of the lake bottom
+p.Xn   = 16;   % Number of grid-points (width)
+p.Zn   = 16;   % Number of grid-points (depth)
+p.Lmin = 0.1;  % Minimum lake depth (depth at land-water interface) [m]
+p.Lmax = 20;   % Maximum lake depth [m]
+p.W    = 20;   % Lake radius [m]
+p.alpha = 0.5; % Exponent governing the slope of the lake bottom
 
 % Lake Mesh, with an increasing depth from Lmin at the shore to Lmax
 % at the center of the lake (slope = alpha* (Lmin - Lmax)/W).
@@ -110,10 +110,10 @@ p.Area_bottom_cyl = Area_bottom_cyl_fn(p);
 dx = zeros(p.Zn-1,p.Xn-1); % Radial Turbulent-diffusion coefficient [m^2 day^-1]
 dz = zeros(p.Zn-1,p.Xn-1); % Vertical Turbulent-diffusion coefficient [m^2 day^-1]
 
-diff_max_x = 1000; % horizontal diffusion coefficient at the surface
-diff_max_z = 1000; % vertical diffusion coefficient at the surface
-diff_min_x = 1000; % horizontal diffusion coefficient at the bottom
-diff_min_z = 1000; % vertical diffusion coefficient at the bottom
+diff_max_x = 1; % horizontal diffusion coefficient at the surface
+diff_max_z = 1; % vertical diffusion coefficient at the surface
+diff_min_x = 1; % horizontal diffusion coefficient at the bottom
+diff_min_z = 1; % vertical diffusion coefficient at the bottom
 
 
 % Linearly decreasing diffusion coefficients with the lake depth.
@@ -149,7 +149,7 @@ p.dX_dEta_preCalc  = dX_dEta_preCalc;
 p.dZ_dXi_preCalc  = dY_dXi_preCalc;
 p.dZ_dEta_preCalc = dY_dEta_preCalc;
 
-%% Stiffness matrix & integration matrix
+%% Stiffness matrix & light integration matrix
 % the stiffness matrix is the matrix M in the linearized system y' = My,
 % where y is a column vector.
 p.S = Stiffness_matrix(p);
@@ -162,11 +162,11 @@ Rd0 = 10.000*ones(p.Zn-1, p.Xn-1);  % initial concentration of dissolved nutrien
 D0  = 1.000*ones(p.Zn-1, p.Xn-1);   % initial concentration of detritus [mg P m^-3]
 Rs0 = 1.0*ones(1, p.Xn-1);          % initial concentration of sediment nutrient density [mg P m^-2]
 B0  = 1.00*ones(1, p.Xn-1);         % initial concentration of benthic algal density [mg C m^-2]
-  %A0(1,:)= 1.0;
-  A0(:,3)= 3.0;
- % A0(:,5)= 1.0;
+%A0(1,:)= 1.0;
+%A0(:,3)= 3.0;
+% A0(:,5)= 1.0;
 %  A0(:,7)= 1.0;
-  %A0(:,9)= 1.0;
+%A0(:,9)= 1.0;
 %  A0(:,11)= 1.0;
 %  A0(:,13)= 1.0;
 %  A0(:,15)= 1.0;
@@ -180,7 +180,7 @@ B0  = 1.00*ones(1, p.Xn-1);         % initial concentration of benthic algal den
 %A0(:,p.Xn-4) = 10;
 % A0(1,1) = 1;
 
- %Rd0(1,1) = 1;
+%Rd0(1,1) = 1;
 % Rd0(1,2) = 1.1;
 %Rd0(2,2) = 1.1;
 % Rd0(2,2) = 2;
@@ -206,7 +206,7 @@ p.ntot_detritus_0  = sum(sum(n_detritus_0));
 p.ntot_sed_0       = sum(n_sediment_0);
 p.ntot_benthic_0   = sum(n_benthic_0);
 
-ntot_0 =  p.ntot_algae_0 + p.ntot_dissolved_0 + p.ntot_detritus_0 + p.ntot_sed_0 + p.ntot_benthic_0;
+p.ntot_0 =  p.ntot_algae_0 + p.ntot_dissolved_0 + p.ntot_detritus_0 + p.ntot_sed_0 + p.ntot_benthic_0;
 
 %% state variables
 A = A0'; % transpose of matrices in order to use colon notation to reshape to vector form.
@@ -221,7 +221,7 @@ y0 = [A(:); Rd(:); D(:); Rs(:); B(:)];
 % t_span = [1:tend/15: tend]; % timespan of simulation. The intermediate steps tells ode15s when to save current state of the model.
 
 %ode_opts = odeset( 'abstol' , 1e-7 , 'reltol', 1e-7, 'NonNegative',find(y0));
-ode_opts = odeset( 'abstol' , 1e-9 , 'reltol', 1e-9, 'NonNegative',find(y0), 'Events', @(t,y) eventfun_V4(t,y,p));
+ode_opts = odeset( 'abstol' , 1e-9 , 'reltol', 1e-9, 'NonNegative',find(y0), 'Events', @(t,y) eventfun_V4(t,y,p)); %,'OutputFcn',@odewbar);
 %ode_opts = odeset(  'reltol', 1e-8, 'NonNegative',find(y0), 'Events', @(t,y) eventfun_V4(t,y,p));
 [t,Y_t] = ode15s( @(t,Y) rhs_function_V4(t,Y,p), [0, inf], y0, ode_opts);
 %[t,Y_t] = ode15s( @(t,Y) rhs_function_v4(t,Y,p) ,[1 tend] , y0 , ode_opts);
@@ -267,71 +267,97 @@ end
 
 %% Figure index
 figureIndex = 1;
+% creation of refined grid for interpolation.
+[X_vol_new,Y_vol_new] = grid_interpolation_fn(p,100,100);
 
 %% Plot of simulation results
 if(true)
-    % creation of refined grid for interpolation.
-    [X_vol_new,Y_vol_new] = grid_interpolation_fn(p);
+    font_size = 18;
     
-   
-    % plot of algal density
+    % plot of phytoplankton nutrient density
     if(true)
         % Plots algal density where the values have been interpolated to
         % produce a smooth figure.
-        grid_data_A = griddata(p.X_vol,p.Z_vol, p.q.*A,X_vol_new,Y_vol_new); % interpolates to refined grid.
+        grid_data_A = griddata(p.X_vol,p.Z_vol, p.q.*A,X_vol_new,Y_vol_new, 'v4'); % interpolates to refined grid.
         figure(figureIndex)
         movegui(figureIndex,[1720 700]);
         figureIndex = figureIndex +1;
         h1 = axes;
         
-        surf(X_vol_new,Y_vol_new,grid_data_A ,  'edgecolor','none')
+        surf(X_vol_new,Y_vol_new,grid_data_A ,  'edgecolor','none') % cell
+        caxis([0 inf]);
+        shading interp
         grid off
         az =0;
         el = 90;
         view(az,el);
         set(h1, 'Ydir', 'reverse')
-        %colorbar
-        title("Concentration of Algae [mgC/m^3]");
+        title("Phytoplankton [mgP/m^3]");
         ylabel("Depth [m]");
         xlabel("distance from lake center [m]");
-        zlabel("Algae concentration [mgC/m^3]");
+        zlabel("Algae concentration [mgP/m^3]");
         colorbar
         colormap(jet)
-        %shading interp
+        set(gca,'fontSize',font_size);
+        z_theory_algae = 1/p.kbg *log((p.I0*(p.Gmax/(p.lbg_A+p.Ad) -1))/p.H); % theoretical maximum depth for benthic growth if light limited,
+         z_theory_algae = round( z_theory_algae,2);
+        % at this depth the light limited growth is equal to respiration losses and death rate.
+        if(z_theory_algae < p.Lmax)
+            hold on
+            plot3([0; p.W],[ z_theory_algae ; z_theory_algae],[max(max(A))+1, max(max(A))+1], '--','color','black','LineWidth',2); % plotting the max depth line
+            mystr = "Max survival depth: " + num2str(z_theory_algae) + "m";
+            %uicontrol('Style','text','String',mystr,'fontsize',22)
+            h = annotation('textbox','String',mystr,'fontsize',15,'EdgeColor','none');
+            h.Position=[.46 .36 .3581 .0879];
+            hold off
+        end
+        
     end
     
     % plot of dissolved nutrient density
     if(true)
-        grid_data_Rd = griddata(p.X_vol,p.Z_vol, Rd,X_vol_new,Y_vol_new); % interpolates to refined grid.
+        grid_data_Rd = griddata(p.X_vol,p.Z_vol, Rd,X_vol_new,Y_vol_new,'v4'); % interpolates to refined grid.
         figure(figureIndex)
         movegui(figureIndex,[2300 700]);
         figureIndex = figureIndex +1;
         surf(X_vol_new,Y_vol_new,grid_data_Rd ,  'edgecolor','none')
+        shading interp
         grid off
         az =0;
         el = 90;
         view(az,el);
         set(gca, 'Ydir', 'reverse')
+        set(gca,'fontSize',font_size);
+        caxis([0 inf]);
         colorbar
         colormap(jet)
-        title("Concentration of dissolved nutrients [mgP/m^3]");
+        title("Dissolved nutrients [mgP/m^3]");
+        ylabel("Depth [m]");
+        xlabel("distance from lake center [m]");
+        
     end
     
     % plot of detritus nutrient density
     if(true)
-        grid_data_D = griddata(p.X_vol,p.Z_vol, D, X_vol_new,Y_vol_new); % interpolates to refined grid.
+        grid_data_D = griddata(p.X_vol,p.Z_vol, D, X_vol_new,Y_vol_new,'v4'); % interpolates to refined grid.
         figure(figureIndex)
         movegui(figureIndex,[2880 700]);
         figureIndex = figureIndex +1;
         surf(X_vol_new,Y_vol_new,grid_data_D ,  'edgecolor','none')
+        %surf(p.X,p.Z,D_new,'edgecolor','none'); % manually interpolated values to grid nodes.
+        shading interp
         grid off
         az =0;
         el = 90;
         view(az,el);
         set(gca, 'Ydir', 'reverse')
+        caxis([0 inf]);
         colorbar
         colormap(jet)
-        title("Concentration of detritus [mgP/m^3]");
+        title("Detritus [mgP/m^3]");
+        ylabel("Depth [m]");
+        xlabel("distance from lake center [m]");
+        set(gca,'fontSize',font_size);
     end
     
     % plot of sediment nutrient density
@@ -339,13 +365,18 @@ if(true)
         % creating points for sediment plot
         sed_points = zeros(1,p.Xn-1);
         sed_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
-        
+        query_points = linspace(0,p.W,200);
+        %sed_interp = interp1(sed_points,Rs, query_points,'makima');
+        sed_interp = interp1(sed_points,Rs, query_points,'pchip');
         figure(figureIndex)
         movegui(figureIndex,[1720 170]);
         figureIndex = figureIndex +1;
-        x = [1:(p.W-1)/(p.Xn-1):p.W];
-        plot(sed_points,Rs);
-        title("Concentration of Sediment Nutrients [mgP/m^2]");
+        plot( query_points,sed_interp);
+        title("Sediment Nutrients [mgP/m^2]");
+        ylabel("concentration [mgP/m^2]");
+        xlabel("distance from lake center [m]");
+        ylim([0 inf]);
+        set(gca,'fontSize',font_size);
     end
     
     % plot of Benthic algal density [mgC/m^2]
@@ -353,13 +384,19 @@ if(true)
         % creating points for benthic algae plot
         benth_points = zeros(1,p.Xn-1);
         benth_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
-        
+        query_points = linspace(0,p.W,200);
+        %benth_interp = interp1(sed_points,B, query_points,'makima');
+        benth_interp = interp1(sed_points,B, query_points,'pchip');
         figure(figureIndex)
         movegui(figureIndex,[2300 170]);
         figureIndex = figureIndex +1;
         x = [1:(p.W-1)/(p.Xn-1):p.W];
-        plot(sed_points,B);
-        title("Concentration of Benthic Algae [mgC/m^2]");
+        plot(query_points,p.q_benth.*benth_interp);
+        title("Benthic Algae [mgP/m^2]");
+        ylabel("concentration [mgP/m^2]");
+        xlabel("distance from lake center [m]");
+        ylim([0 inf]);
+        set(gca,'fontSize',font_size);
     end
     
     %plot of algal production G
@@ -379,6 +416,8 @@ if(true)
         colormap(jet)
         %surf(p.X_vol,p.Z_vol ,griddata(X_volOld,Y_volOld, G,p.X_vol,p.Z_vol),  'edgecolor','none')
         surf(p.X_vol,p.Z_vol ,G,  'edgecolor','none')
+        ylabel("Depth [m]");
+        xlabel("distance from lake center [m]");
         view(2);
         set(gca, 'YDir','reverse', 'XDir', 'reverse')
         axis square
@@ -424,9 +463,8 @@ if(true)
         l_lim = I./(I+p.H);
         n_lim = Rd./(Rd+p.M);
         
-        
-        interp_l_lim = griddata(p.X_vol,p.Z_vol, l_lim, X_vol_new,Y_vol_new); % interpolates to refined grid.
-        interp_n_lim = griddata(p.X_vol,p.Z_vol, n_lim, X_vol_new,Y_vol_new); % interpolates to refined grid.
+        interp_l_lim = griddata(p.X_vol,p.Z_vol, l_lim, X_vol_new,Y_vol_new,'v4'); % interpolates to refined grid.
+        interp_n_lim = griddata(p.X_vol,p.Z_vol, n_lim, X_vol_new,Y_vol_new,'v4'); % interpolates to refined grid.
         
         limitation = zeros(length(interp_l_lim(:,1)),length(interp_l_lim(1,:)));
         for i = 1:length(interp_l_lim(:,1))
@@ -444,8 +482,10 @@ if(true)
             end
         end
         
+        z_theory_benth = 1/p.kbg *log((p.I0*(p.Gmax_benth/p.lbg_benth -1))/p.H_benth); % theoretical maximum depth for benthic growth if light limited,
+        % at this depth the light limited growth is equal to respiration losses and death rate.
+         z_theory_algae = round( z_theory_algae,2);
         
- 
         figure(figureIndex)
         movegui(figureIndex,[2880 170]);
         figureIndex = figureIndex +1;
@@ -455,10 +495,20 @@ if(true)
         el = 90;
         view(az,el);
         set(gca, 'Ydir', 'reverse')
-       % colorbar
         colormap(jet)
         title("light vs nutrient limitation");
         xlabel("red = nutrient limited, blue = light limited.");
+        ylabel("Depth [m]");
+        
+        if(z_theory_benth < p.Lmax)
+            hold on
+            plot3([0; p.W],[ z_theory_benth ; z_theory_benth],[2 2], '--','color','black','LineWidth',2);
+            mystr = "Max survival depth: " + num2str(z_theory_algae) + "m";
+            h = annotation('textbox','String',mystr,'fontsize',15,'EdgeColor','none');
+            h.Position=[.54 .37 .3581 .0879];
+            hold off
+            set(gca,'fontSize',font_size);
+        end
     end
     
     % plot of lake coordinate system
@@ -494,8 +544,8 @@ if(true)
     perc_sediment = sum(n_sediment_end)/ntot_end;
     perc_benthic = sum(n_benthic_end)/ntot_end;
     
-    disp("portion of leaked nutrients: " + num2str(abs((ntot_0-ntot_end) /ntot_0 )));
-    disp("leaked nutrients [mgP]: " + num2str(abs(ntot_0-ntot_end)));
+    disp("portion of leaked nutrients: " + num2str(abs((p.ntot_0-ntot_end) /p.ntot_0 )));
+    disp("leaked nutrients [mgP]: " + num2str(abs(p.ntot_0-ntot_end)));
     disp("portion of nutrients in phytoplankton: " + num2str(perc_algae));
     disp("portion of nutrients in dissolved nutrients: " + num2str(perc_dissolved));
     disp("portion of nutrients in detritus: " + num2str(perc_detritus));
@@ -506,66 +556,73 @@ end
 
 %% plot of nutrient leakage over time
 if(true)
-leakage   = zeros(1,length(t));
-algae     = zeros(1,length(t));
-dissolved = zeros(1,length(t));
-beth      = zeros(1,length(t));
-
-
-for i = 1:length(t)
-A  = Y_t(i,1:(p.Xn-1)*(p.Zn-1));
-Rd = Y_t(i,(p.Xn-1)*(p.Zn-1)+1 : 2*(p.Xn-1)*(p.Zn-1));
-D  = Y_t(i,2*(p.Xn-1)*(p.Zn-1)+1 : 3*(p.Xn-1)*(p.Zn-1));
-Rs = Y_t(i,3*(p.Xn-1)*(p.Zn-1) +1 : 3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1));
-B  = Y_t(i,3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1)+1: end);
-% Reshaping the vectors into matrices
-A  = reshape(A, [p.Xn-1, p.Zn-1]);
-Rd = reshape(Rd, [p.Xn-1, p.Zn-1]);
-D  = reshape(D, [p.Xn-1, p.Zn-1]);
-A  = A';
-Rd = Rd';
-D  = D';
-
-%Calculating nutrient content at t = Tend
-n_algae_end     = p.volumes_cyl.*A*p.q;
-n_dissolved_end = p.volumes_cyl.*Rd;
-n_detritus_end  = p.volumes_cyl.*D;
-n_sediment_end  = Rs.*p.Area_bottom_cyl;
-n_benthic_end   = B.*p.q_benth.*p.Area_bottom_cyl;
-ntot_end        = sum(sum(n_algae_end)) + sum(sum(n_dissolved_end)) + sum(sum(n_detritus_end)) + sum(n_sediment_end) + sum(n_benthic_end);
-leakage(i)      = (-ntot_end + ntot_0)/ntot_0;
-end
-figure(figureIndex)
-figureIndex = figureIndex +1;
-plot(t,leakage);
-title('(ntot(t)-ntot0)/ ntot0');
+    leakage   = zeros(1,length(t));
+    algae     = zeros(1,length(t));
+    dissolved = zeros(1,length(t));
+    beth      = zeros(1,length(t));
+    
+    
+    for i = 1:length(t)
+        A  = Y_t(i,1:(p.Xn-1)*(p.Zn-1));
+        Rd = Y_t(i,(p.Xn-1)*(p.Zn-1)+1 : 2*(p.Xn-1)*(p.Zn-1));
+        D  = Y_t(i,2*(p.Xn-1)*(p.Zn-1)+1 : 3*(p.Xn-1)*(p.Zn-1));
+        Rs = Y_t(i,3*(p.Xn-1)*(p.Zn-1) +1 : 3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1));
+        B  = Y_t(i,3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1)+1: end);
+        % Reshaping the vectors into matrices
+        A  = reshape(A, [p.Xn-1, p.Zn-1]);
+        Rd = reshape(Rd, [p.Xn-1, p.Zn-1]);
+        D  = reshape(D, [p.Xn-1, p.Zn-1]);
+        A  = A';
+        Rd = Rd';
+        D  = D';
+        
+        %Calculating nutrient content at t = Tend
+        n_algae_end     = p.volumes_cyl.*A*p.q;
+        n_dissolved_end = p.volumes_cyl.*Rd;
+        n_detritus_end  = p.volumes_cyl.*D;
+        n_sediment_end  = Rs.*p.Area_bottom_cyl;
+        n_benthic_end   = B.*p.q_benth.*p.Area_bottom_cyl;
+        ntot_end        = sum(sum(n_algae_end)) + sum(sum(n_dissolved_end)) + sum(sum(n_detritus_end)) + sum(n_sediment_end) + sum(n_benthic_end);
+        leakage(i)      = (-ntot_end + p.ntot_0)/p.ntot_0;
+    end
+    figure(figureIndex)
+    figureIndex = figureIndex +1;
+    plot(t,leakage);
+    title('(ntot(t)-ntot0)/ ntot0');
 end
 
 %% video of plankton dynamics
-A_vid = true; % flags for videos, set to true if desired.
-Rd_vid = true;
+A_vid = false; % flags for videos, set to true if desired.
+Rd_vid = false;
 Rs_vid = true;
-Ab_vid = true;
-D_vid = true;
-lim_vid = true;
+Ab_vid = false;
+D_vid = false;
+lim_vid = false;
+all_vid = false;
 % creating points for sediment plot
 sed_points = zeros(1,p.Xn-1);
 sed_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
 
+font_size = 18;
 
-if(false) % set to false if no videos are desired.
+if(true) % set to false if no videos are desired.
     close all
-    if(A_vid) A_video = VideoWriter('plankton.avi');                open(A_video); end
-    if(Rd_vid) Rd_video = VideoWriter('dissolved_nutrients.avi');   open(Rd_video);end
-    if(D_vid) D_video = VideoWriter('dissolved_nutrients.avi');   open(D_video);end
-    if(Rs_vid) Rs_video = VideoWriter('Sediment_nutrients.avi');    open(Rs_video); end
-    if(Ab_vid) Ab_video = VideoWriter('benthic_algae.avi');         open(Ab_video); end
-    if(lim_vid) lim_video = VideoWriter('benthic_algae.avi');         open(lim_video); end
+    if(A_vid)   A_video = VideoWriter('plankton.avi');             open(A_video); end
+    if(Rd_vid)  Rd_video = VideoWriter('dissolved_nutrients.avi'); open(Rd_video);end
+    if(D_vid)   D_video = VideoWriter('detritus_nutrients.avi');   open(D_video);end
+    if(Rs_vid)  Rs_video = VideoWriter('Sediment_nutrients.avi');  open(Rs_video); end
+    if(Ab_vid)  Ab_video = VideoWriter('benthic_algae.avi');       open(Ab_video); end
+    if(lim_vid) lim_video = VideoWriter('growth_limitation.avi');  open(lim_video); end
+    if(all_vid) all_video = VideoWriter('everything.avi');         open(all_video); end
     
-    %axis tight manual
-    set(gca,'nextplot','replacechildren');
+    % axis tight manual
+    % set(gca,'nextplot','replacechildren');
     
-    for t_index = 1:100:(length(Y_t(:,1)))
+    
+    % figure(1)
+    %caxis([0 inf]);
+    
+    for t_index = 1:20:(length(Y_t(:,1)))
         % Extracting state variables
         if(A_vid)
             A = Y_t(t_index,1:(p.Xn-1)*(p.Zn-1));
@@ -588,40 +645,59 @@ if(false) % set to false if no videos are desired.
         if(Ab_vid)
             B = Y_t(t_index, 3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1) +1 : end);
         end
+        if(all_vid)
+            A = Y_t(t_index,1:(p.Xn-1)*(p.Zn-1));
+            A = reshape(A, [(p.Xn-1), (p.Zn-1)]);
+            A = A';
+            Rd = Y_t(t_index, (p.Xn-1)*(p.Zn-1)+1 : 2*(p.Xn-1)*(p.Zn-1));
+            Rd = reshape(Rd, [(p.Xn-1), (p.Zn-1)]);
+            Rd = Rd';
+            D = Y_t(t_index, 2*(p.Xn-1)*(p.Zn-1)+1 : 3*(p.Xn-1)*(p.Zn-1));
+            D = reshape(D, [(p.Xn-1), (p.Zn-1)]);
+            D = D';
+            Rs = Y_t(t_index, 3*(p.Xn-1)*(p.Zn-1) +1 : 3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1));
+            B = Y_t(t_index, 3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1) +1 : end);
+        end
         
-        colormap(jet)
+        az =0;
+        el = 90; % angles for viewing surface plots from above.
+        
         %%%% Nutrients bound in Algae %%%%
         if(A_vid)
+            % Plots algal density where the values have been interpolated to
+            % produce a smooth figure.
             f1 = figure(1);
             movegui(f1,[1720 700]);
-            clf(f1);
+            clf(f1); % clears the current window
+            grid_data_A = griddata(p.X_vol,p.Z_vol, p.q.*A,X_vol_new,Y_vol_new, 'v4'); % interpolates to refined grid.
+            %interp_A  = scatteredInterpolant(p.X_vol(:),p.Z_vol(:), p.q.*A(:),'linear'); % interpolates to refined grid.
+            %grid_data_A  = interp_A(X_vol_new,Y_vol_new);
             
-            
-            h6 = axes;
-            %grid_data = griddata(p.X_vol,p.Z_vol, A,X_vol_new,Y_vol_new);
-      % 
-            %surf(X_vol_new,Y_vol_new,grid_data ,  'edgecolor','none')
-            %caxis([0,max(max(A0))]);
-            surf(p.X_vol, p.Z_vol, A, 'edgecolor','none');
+            surf(X_vol_new,Y_vol_new,grid_data_A ,  'edgecolor','none') % cell
             shading interp
             grid off
+            view(az,el);
+            set(gca, 'Ydir', 'reverse')
+            title("Phytoplankton [mgP/m^3]");
             ylabel("Depth [m]");
             xlabel("distance from lake center [m]");
-            title("Algae concentration [mgC/m^3]");
-            colorbar;
-            az =0;
-            el = 90;
-            %az= 45+180; % azimuth angle
-            %el= 65; % elevation angle
-            view(az,el);
-            set(h6, 'Ydir', 'reverse')
-            %axis([0 p.W 0 p.Lmax 0 max(max(A))]) % Fixing window size for video
+            zlabel("concentration [mgP/m^3]");
+            colorbar
+            set(gca,'FontSize',font_size)
+            caxis([0 inf]);
+            colormap(jet)
             
-            ax = struct('Axes', gca);
-            %align_axislabel([],ax) % aligns the axis labels to the plot
-            
-            if(az ~=0 && el ~= 90)
-                align_axislabel([],ax) % aligns the axis labels to the plot
+            z_theory_algae = 1/p.kbg *log((p.I0*(p.Gmax/(p.lbg_A+p.Ad) -1))/p.H); % theoretical maximum depth for benthic growth if light limited,
+            z_theory_algae = round(z_theory_algae,2);
+            % at this depth the light limited growth is equal to respiration losses and death rate.
+            if(z_theory_algae < p.Lmax)
+                hold on
+                plot3([0; p.W],[ z_theory_algae ; z_theory_algae],[max(max(A))+1, max(max(A))+1], '--','color','black','LineWidth',2); % plotting the max depth line
+                mystr = "Max survival depth: " + num2str(z_theory_algae) + "m";
+                %uicontrol('Style','text','String',mystr,'fontsize',22)
+                h = annotation('textbox','String',mystr,'fontsize',15,'EdgeColor','none');
+                h.Position=[.46 .36 .3581 .0879];
+                hold off
             end
             drawnow
             %pause(0.0001)
@@ -634,26 +710,19 @@ if(false) % set to false if no videos are desired.
             f2 = figure(2);
             movegui(f2,[2300 700]);
             clf(f2);
-            h6 = axes;
-            %grid_data = griddata(p.X_vol,p.Z_vol, Rd,X_vol_new,Y_vol_new);
-            %surf(X_vol_new,Y_vol_new,grid_data ,  'edgecolor','none')
-            surf(p.X_vol, p.Z_vol, Rd,'edgecolor','none');
+            grid_data_Rd = griddata(p.X_vol,p.Z_vol, Rd,X_vol_new,Y_vol_new, 'v4'); % interpolates to refined grid.
+            surf(X_vol_new,Y_vol_new,grid_data_Rd ,  'edgecolor','none') % cell
+            caxis([0 inf]);
             shading interp
             grid off
             ylabel("Depth [m]");
             xlabel("distance from lake center [m]");
-            title("Dissolved Nutrient concentration [mgP/m^3]");
+            title("Dissolved Nutrients [mgP/m^3]");
             colorbar;
-            az =0;
-            el = 90;
-            %az= 45+180; % azimuth angle
-            %el= 65; % elevation angle
             view(az,el);
-            set(h6, 'Ydir', 'reverse')
-            %axis([0 p.W 0 p.Lmax 0 max(max(A0))]) % Fixing window size for video
-            %axis([0 p.W 0 p.Lmax 0 2]) % Fixing window size for video
-            %ax = struct('Axes', gca);
-            %align_axislabel([],ax) % aligns the axis labels to the plot
+            set(gca, 'Ydir', 'reverse')
+            colormap(jet)
+            set(gca,'FontSize',font_size)
             drawnow
             %pause(0.0001)
             frame = getframe(gcf);
@@ -665,28 +734,20 @@ if(false) % set to false if no videos are desired.
             f3 = figure(3);
             movegui(f3,[2880 700]);
             clf(f3);
-            h6 = axes;
-            %grid_data = griddata(p.X_vol,p.Z_vol, D,X_vol_new,Y_vol_new);
-            %surf(X_vol_new,Y_vol_new,grid_data ,  'edgecolor','none')
-            surf(p.X_vol, p.Z_vol, D,'edgecolor','none');
+            grid_data = griddata(p.X_vol,p.Z_vol, D,X_vol_new,Y_vol_new,'v4');
+            surf(X_vol_new,Y_vol_new,grid_data ,  'edgecolor','none')
+            caxis([0 inf]);
             shading interp
             grid off
             ylabel("Depth [m]");
             xlabel("distance from lake center [m]");
-            title("Detritus Nutrient concentration [mgP/m^3]");
+            title("Detritus [mgP/m^3]");
             colorbar;
-            az =0;
-            el = 90;
-            %az= 45+180; % azimuth angle
-            %el= 65; % elevation angle
+            colormap(jet);
+            set(gca,'FontSize',font_size)
             view(az,el);
-            set(h6, 'Ydir', 'reverse')
-            %axis([0 p.W 0 p.Lmax 0 max(max(A0))]) % Fixing window size for video
-            %axis([0 p.W 0 p.Lmax 0 2]) % Fixing window size for video
-            %ax = struct('Axes', gca);
-            %align_axislabel([],ax) % aligns the axis labels to the plot
+            set(gca, 'Ydir', 'reverse')
             drawnow
-            %pause(0.0001)
             frame = getframe(gcf);
             writeVideo(D_video,frame);
         end
@@ -696,19 +757,17 @@ if(false) % set to false if no videos are desired.
             f4 = figure(4);
             movegui(f4,[1720 170]);
             clf(f4);
-            %h6 = axes;
-            Rs_interp = interp1(sed_points,Rs, linspace(0,p.W,300));
-            plot(linspace(0,p.W,300),Rs_interp);
-            %plot(sed_points,Rs);
+            query_points = linspace(0,p.W,200);
+            %benth_interp = interp1(sed_points,B, query_points,'makima');
+            Rs_interp = interp1(sed_points,Rs, query_points,'pchip');
+            plot(query_points,Rs_interp);
             grid off
-            ylabel("Sediment nutrient concentration [mgP/m^2]");
+            ylabel("concentration [mgP/m^2]");
             xlabel("distance from lake center [m]");
-            title("Sediment nutrient concentration [mgP/m^2]");
-            %set(h6, 'Ydir', 'reverse')
-            %axis([0 p.W 0 p.Lmax 0 max(max(A0))]) % Fixing window size for video
-            %axis([0 p.W 0 p.Lmax -2 2]) % Fixing window size for video
+            title("Sediment Nutrients [mgP/m^2]");
+            ylim([0 inf]);
+            set(gca,'FontSize',font_size)
             drawnow
-            %pause(0.0001)
             frame = getframe(gcf);
             writeVideo(Rs_video,frame);
         end
@@ -718,13 +777,20 @@ if(false) % set to false if no videos are desired.
             f5 = figure(5);
             movegui(f5,[2300 170]);
             clf(f5);
-            %plot(sed_points,B);
-            B_interp = interp1(sed_points,B, linspace(0,p.W,300));
-            plot(linspace(0,p.W,300),B_interp);
+            % creating points for benthic algae plot
+            benth_points = zeros(1,p.Xn-1);
+            benth_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
+            query_points = linspace(0,p.W,200);
+            %benth_interp = interp1(sed_points,B, query_points,'makima');
+            benth_interp = interp1(sed_points,B,query_points,'pchip');
+            x = [1:(p.W-1)/(p.Xn-1):p.W];
+            plot(query_points,p.q_benth.*benth_interp);
             grid off
-            ylabel("Benthic Algae concentration [mgC/m^2]");
+            ylabel("concentration [mgC/m^2]");
             xlabel("distance from lake center [m]");
-            title("Benthic Algae concentration [mgC/m^2]");
+            title("Benthic Algae  [mgC/m^2]");
+            ylim([0 inf]);
+            set(gca,'FontSize',font_size)
             drawnow
             frame = getframe(gcf);
             writeVideo(Ab_video,frame);
@@ -732,52 +798,227 @@ if(false) % set to false if no videos are desired.
         
         %%%% light/nutrient limitation plot %%%%
         if(lim_vid)
-             % calculation  of light/nutrient limitation at each point in lake.
-        
-        l_lim = I./(I+p.H);
-        n_lim = Rd./(Rd+p.M);
-        
-        
-        interp_l_lim = griddata(p.X_vol,p.Z_vol, l_lim, X_vol_new,Y_vol_new); % interpolates to refined grid.
-        interp_n_lim = griddata(p.X_vol,p.Z_vol, n_lim, X_vol_new,Y_vol_new); % interpolates to refined grid.
-        
-        limitation = zeros(length(interp_l_lim(:,1)),length(interp_l_lim(1,:)));
-        for i = 1:length(interp_l_lim(:,1))
-            for j =1:length(interp_l_lim(1,:))
-                
-                if(~isnan(interp_l_lim(i,j)) || ~isnan(interp_l_lim(i,j)))
-                    if( interp_l_lim(i,j) > interp_n_lim(i,j))
-                        limitation(i,j) = 1; % nutrient limited.
-                    else
-                        limitation(i,j) = -1; % light limited.
-                    end
-                else
-                    limitation(i,j) = NaN;
+            % calculation  of light/nutrient limitation at each point in lake.
+            I = zeros(p.Zn-1,p.Xn-1);
+            
+            for x = 1:p.Xn-1
+                integral = 0;
+                for z=1:p.Zn-1
+                    integral = integral + p.Z(z,x) *(p.kA*A(z,x) + p.kD*D(z,x));
+                    I(z,x) = p.I0 * exp(-integral -p.kbg*p.Z(z,x));
                 end
             end
+            
+            Rd = Y_t(t_index, (p.Xn-1)*(p.Zn-1)+1 : 2*(p.Xn-1)*(p.Zn-1));
+            Rd = reshape(Rd, [(p.Xn-1), (p.Zn-1)]);
+            Rd = Rd';
+            
+            l_lim = I./(I+p.H);
+            n_lim = Rd./(Rd+p.M);
+            interp_l_lim = griddata(p.X_vol,p.Z_vol, l_lim, X_vol_new,Y_vol_new,'v4'); % interpolates to refined grid.
+            interp_n_lim = griddata(p.X_vol,p.Z_vol, n_lim, X_vol_new,Y_vol_new,'v4'); % interpolates to refined grid.
+            
+            limitation = zeros(length(interp_l_lim(:,1)),length(interp_l_lim(1,:)));
+            for i = 1:length(interp_l_lim(:,1))
+                for j =1:length(interp_l_lim(1,:))
+                    
+                    if(~isnan(interp_l_lim(i,j)) || ~isnan(interp_l_lim(i,j)))
+                        if( interp_l_lim(i,j) > interp_n_lim(i,j))
+                            limitation(i,j) = 1; % nutrient limited.
+                        else
+                            limitation(i,j) = -1; % light limited.
+                        end
+                    else
+                        limitation(i,j) = NaN;
+                    end
+                end
+            end
+            
+            f6 = figure(6);
+            movegui(f6,[2880 170]);
+            figureIndex = figureIndex +1;
+            clf(f6); % clears the current window
+            surf(X_vol_new,Y_vol_new,limitation ,  'edgecolor','none')
+            shading flat
+            grid off
+            view(az,el);
+            set(gca, 'Ydir', 'reverse')
+            colormap(jet)
+            set(gca,'FontSize',font_size)
+            title("light vs nutrient limitation");
+            xlabel("red = nutrient limited, blue = light limited.");
+            
+            z_theory_algae = 1/p.kbg *log((p.I0*(p.Gmax/(p.lbg_A+p.Ad) -1))/p.H); % theoretical maximum depth for benthic growth if light limited,
+            z_theory_algae = round(z_theory_algae,2);
+            % at this depth the light limited growth is equal to respiration losses and death rate.
+            if(z_theory_algae < p.Lmax)
+                hold on
+                plot3([0; p.W],[ z_theory_algae ; z_theory_algae],[max(max(A))+1, max(max(A))+1], '--','color','black','LineWidth',2); % plotting the max depth line
+                mystr = "Max survival depth: " + num2str(z_theory_algae) + "m";
+                %uicontrol('Style','text','String',mystr,'fontsize',22)
+                h = annotation('textbox','String',mystr,'fontsize',15,'EdgeColor','none');
+                h.Position=[.54 .37 .3581 .0879];
+                hold off
+            end
+            
+            drawnow
+            frame = getframe(gcf);
+            writeVideo(lim_video,frame);
+            
         end
         
-        f6 = figure(6);
-        movegui(f6,[2880 170]);
-        figureIndex = figureIndex +1;
-        surf(X_vol_new,Y_vol_new,limitation ,  'edgecolor','none')
-        grid off
-        az =0;
-        el = 90;
-        view(az,el);
-        set(gca, 'Ydir', 'reverse')
-        colorbar
-        colormap(jet)
-        title("light vs nutrient limitation");
-        xlabel("red = nutrient limited (1), blue = light limited (-1).");
+        %%%% subplot figure of all the state variables in one plot. %%%%
+        if(all_vid)
+            %   grid_data_A  = griddata(p.X_vol,p.Z_vol, p.q.*A,X_vol_new,Y_vol_new, 'v4'); % interpolates to refined grid.
+            %   grid_data_Rd = griddata(p.X_vol,p.Z_vol, Rd,X_vol_new,Y_vol_new, 'v4');     % interpolates to refined grid.
+            %   grid_data_D  = griddata(p.X_vol,p.Z_vol, D,X_vol_new,Y_vol_new, 'v4');      % interpolates to refined grid.
+            
+            
+            % using scatteredInterpolant instead for increased performance.
+            
+            interp_A  = scatteredInterpolant(p.X_vol(:),p.Z_vol(:), p.q.*A(:),'nearest'); % interpolates to refined grid.
+            interp_Rd = scatteredInterpolant(p.X_vol(:),p.Z_vol(:), Rd(:),'nearest');     % interpolates to refined grid.
+            interp_D  = scatteredInterpolant(p.X_vol(:),p.Z_vol(:), D(:),'nearest');      % interpolates to refined grid.
+            grid_data_A  = interp_A(X_vol_new,Y_vol_new);
+            grid_data_Rd = interp_Rd(X_vol_new,Y_vol_new);
+            grid_data_D  = interp_D(X_vol_new,Y_vol_new);
+            
+            
+            f1 = figure(1);
+            set(gcf, 'Position',  [1720, 200, 1600, 1000])
+            clf(f1);
+            
+            %%% phytoplanton nutrient concentration %%%
+            subplot(2,3,1)
+            surf(X_vol_new,Y_vol_new,grid_data_A ,  'edgecolor','none') % cell
+            shading interp
+            grid off
+            caxis([0 inf]);
+            view(az,el);
+            title("Concentration [mgP/m^3]");
+            ylabel("Depth [m]");
+            xlabel("distance from lake center [m]");
+            zlabel("Algae concentration [mgP/m^3]");
+            colorbar
+            set(gca, 'Ydir', 'reverse')
+            pbaspect([1 1 1])
+            z_theory_algae = 1/p.kbg *log((p.I0*(p.Gmax/(p.lbg_A+p.Ad) -1))/p.H); % theoretical maximum depth for benthic growth if light limited,
+            % at this depth the light limited growth is equal to respiration losses and death rate.
+            z_theory_algae = round(z_theory_algae,2);
+            if(z_theory_algae < p.Lmax)
+                hold on
+                plot3([0; p.W],[ z_theory_algae ; z_theory_algae],[max(max(A))+1, max(max(A))+1], '--','color','black','LineWidth',2); % plotting the max depth line
+                mystr = "Max survival depth: " + num2str(z_theory_algae) + "m";
+                %uicontrol('Style','text','String',mystr,'fontsize',22)
+                h = annotation('textbox','String',mystr,'fontsize',12,'EdgeColor','none');
+                h.Position=[.21 .619 .09581 .0879];
+                hold off
+            end
+            
+            %%% dissolved nutrient concentration %%%
+            subplot(2,3,2)
+            surf(X_vol_new,Y_vol_new,grid_data_Rd ,  'edgecolor','none') % cell
+            caxis([0 inf]);
+            shading interp
+            grid off
+            ylabel("Depth [m]");
+            xlabel("distance from lake center [m]");
+            title("Dissolved Nutrients [mgP/m^3]");
+            colorbar;
+            view(az,el);
+            set(gca, 'Ydir', 'reverse')
+            pbaspect([1 1 1])
+            
+            %%% detritus nutrient concentration %%%
+            subplot(2,3,3)
+            grid_data = griddata(p.X_vol,p.Z_vol, D,X_vol_new,Y_vol_new,'v4');
+            surf(X_vol_new,Y_vol_new,grid_data ,  'edgecolor','none')
+            shading interp
+            grid off
+            ylabel("Depth [m]");
+            xlabel("distance from lake center [m]");
+            title("Detritus Nutrient concentration [mgP/m^3]");
+            colorbar;
+            view(az,el);
+            set(gca, 'Ydir', 'reverse')
+            pbaspect([1 1 1])
+            
+            %%% sediment nutrient concentration %%%
+            subplot(2,3,4)
+            Rs_interp = interp1(sed_points,Rs, linspace(0,p.W,300));
+            plot(linspace(0,p.W,300),Rs_interp);
+            %plot(sed_points,Rs);
+            grid off
+            ylabel("nutrient concentration [mgP/m^2]");
+            xlabel("distance from lake center [m]");
+            title("Sediment nutrient concentration [mgP/m^2]");
+            pbaspect([1 1 1])
+            
+            %%% benthic algae nutrient concentration %%%
+            subplot(2,3,5)
+            B_interp = interp1(sed_points,B, linspace(0,p.W,300));
+            plot(linspace(0,p.W,300),B_interp);
+            grid off
+            ylabel("nutrient concentration [mgC/m^2]");
+            xlabel("distance from lake center [m]");
+            title("Benthic Algae concentration [mgC/m^2]");
+            pbaspect([1 1 1])
+            
+            %%% light & nutrient limitation plot %%%
+            subplot(2,3,6)
+            l_lim = I./(I+p.H);
+            n_lim = Rd./(Rd+p.M);
+            interp_l_lim = griddata(p.X_vol,p.Z_vol, l_lim, X_vol_new,Y_vol_new,'v4'); % interpolates to refined grid.
+            interp_n_lim = griddata(p.X_vol,p.Z_vol, n_lim, X_vol_new,Y_vol_new,'v4'); % interpolates to refined grid.
+            limitation = zeros(length(interp_l_lim(:,1)),length(interp_l_lim(1,:)));
+            
+            for i = 1:length(interp_l_lim(:,1))
+                for j =1:length(interp_l_lim(1,:))
+                    
+                    if(~isnan(interp_l_lim(i,j)) || ~isnan(interp_l_lim(i,j)))
+                        if( interp_l_lim(i,j) > interp_n_lim(i,j))
+                            limitation(i,j) = 1; % nutrient limited.
+                        else
+                            limitation(i,j) = -1; % light limited.
+                        end
+                    else
+                        limitation(i,j) = NaN;
+                    end
+                end
+            end
+            
+            surf(X_vol_new,Y_vol_new,limitation ,  'edgecolor','none')
+            grid off
+            view(az,el);
+            set(gca, 'Ydir', 'reverse')
+            colorbar
+            colormap(jet)
+            title("light vs nutrient limitation");
+            xlabel("red = nutrient limited (1), blue = light limited (-1).");
+            pbaspect([1 1 1])
+            
+            if(z_theory_algae < p.Lmax)
+                hold on
+                plot3([0; p.W],[ z_theory_algae ; z_theory_algae],[max(max(A))+1, max(max(A))+1], '--','color','black','LineWidth',2); % plotting the max depth line
+                mystr = "Max survival depth: " + num2str(z_theory_algae) + "m";
+                %uicontrol('Style','text','String',mystr,'fontsize',22)
+                h = annotation('textbox','String',mystr,'fontsize',12,'EdgeColor','none');
+                h.Position=[.777 .15 .09581 .0879];
+                hold off
+            end
+            
+            
         end
         
     end
     
     
-    if(A_vid)  close(A_video);  end
-    if(Rd_vid) close(Rd_video); end
-    if(Rs_vid) close(Rs_video); end
-    if(Ab_vid) close(Ab_video); end
+    if(A_vid)   close(A_video);  end
+    if(Rd_vid)  close(Rd_video); end
+    if(D_vid)   close(D_video); end
+    if(Rs_vid)  close(Rs_video); end
+    if(Ab_vid)  close(Ab_video); end
     if(lim_vid) close(lim_video); end
+    if(all_vid) close(all_video); end
 end
+

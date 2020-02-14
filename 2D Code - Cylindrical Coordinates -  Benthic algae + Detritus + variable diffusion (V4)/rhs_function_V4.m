@@ -8,8 +8,8 @@ function [output] = rhs_function_V4(t,Y,p)
 
 % Version 4 - detritus + variable diffusion coefficients.
 
-constant_resuspension = true;
 
+constant_resuspension = true;
 %% reformatting input
 % separating the state variables from y
 A = Y(1:(p.Xn-1)*(p.Zn-1)); % phytoplankton
@@ -28,21 +28,29 @@ D = D';
 %% Calculation of the light intensity at each grid element center
 
 I = zeros(p.Zn-1,p.Xn-1);
-for j = 1:p.Xn-1
-    integral = 0;
-    
-        integral = integral + p.Z(2,j) *(p.kA*A(1,j) + p.kD*D(1,j)); 
-        I(1,j) = p.I0 * exp(-integral -p.kbg*p.Z(2,j)); 
-        
-        
-    for i=2:p.Zn-1
-        integral = integral + (p.Z(i+1,j)-p.Z(i,j)) *(p.kA*A(i,j) + p.kD*D(i,j));
-        I(i,j) = p.I0 * exp(-integral -p.kbg*p.Z(i+1,j)); 
-    end
-end
+% for j = 1:p.Xn-1
+%     integral = 0;
+%     
+%         %integral = integral + p.Z(2,j) *(p.kA*A(1,j) + p.kD*D(1,j)); 
+%         % I(1,j) = p.I0 * exp(-integral -p.kbg*p.Z(2,j)); 
+%         
+%         integral = integral + p.Z_vol(1,j) *(p.kA*A(1,j) + p.kD*D(1,j)); % uses cell center depth values
+%         I(1,j) = p.I0 * exp(-integral -p.kbg*p.Z_vol(1,j)); 
+%         
+%     for i=2:p.Zn-1
+%         %integral = integral + (p.Z(i+1,j)-p.Z(i,j)) *(p.kA*A(i,j) + p.kD*D(i,j));
+%         %I(i,j) = p.I0 * exp(-integral -p.kbg*p.Z(i+1,j)); 
+% 
+%         integral = integral + (p.Z_vol(i,j)-p.Z_vol(i-1,j)) *(p.kA*A(i,j) + p.kD*D(i,j)); % uses cell center depth values
+%         I(i,j) = p.I0 * exp(-integral -p.kbg*p.Z_vol(i,j)); 
+%     end
+% end
 
-test = 0;
-%I = p.I0.*exp(- p.kA.*p.I_matrix*A - p.kD.*p.I_matrix*D - p.kbg*p.Z_vol);
+A_temp = A';
+D_temp = D';
+Z_vol_temp = p.Z_vol';
+I_alt = p.I0 .* exp(-p.I_matrix*(p.kA.*A_temp(:) + p.kD.*D_temp(:)) - p.kbg.*Z_vol_temp(:));
+I = reshape(I_alt,[(p.Xn-1) (p.Zn-1)])';
 
 p.I = I;
 % Calculation of the algal production G(R,I)
@@ -85,7 +93,7 @@ i = p.Zn-1; % eta
 for j = 1:p.Xn-1 % xi
     % Bethic algae net growth
     
-    nutrient_limited_growth =  p.Gmax_benth*B(j)*(Rd(i,j)/(Rd(i,j)+p.M_benth));
+    nutrient_limited_growth =  p.Gmax_benth*B(j)*(Rd(i,j)/(Rd(i,j)+p.M_benth));  
     light_limited_growth = p.Gmax_benth./p.kB.*log((p.H_benth + I(i,j))/(p.H_benth + I(i,j).*exp(-p.kB.*B(j))));
     
     dBdt(j) = dBdt(j) + min(nutrient_limited_growth, light_limited_growth) - p.lbg_benth*B(j);
