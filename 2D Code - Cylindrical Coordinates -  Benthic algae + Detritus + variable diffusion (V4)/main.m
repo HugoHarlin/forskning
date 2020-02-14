@@ -58,8 +58,8 @@ p.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrien
 
 %% Lake topology and Mesh
 % Quantities relating to system size
-p.Xn   = 16;   % Number of grid-points (width)
-p.Zn   = 16;   % Number of grid-points (depth)
+p.Xn   = 11;   % Number of grid-points (width)
+p.Zn   = 11;   % Number of grid-points (depth)
 p.Lmin = 0.1;  % Minimum lake depth (depth at land-water interface) [m]
 p.Lmax = 20;   % Maximum lake depth [m]
 p.W    = 20;   % Lake radius [m]
@@ -605,7 +605,7 @@ sed_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
 
 font_size = 18;
 
-if(true) % set to false if no videos are desired.
+if(false) % set to false if no videos are desired.
     close all
     if(A_vid)   A_video = VideoWriter('plankton.avi');             open(A_video); end
     if(Rd_vid)  Rd_video = VideoWriter('dissolved_nutrients.avi'); open(Rd_video);end
