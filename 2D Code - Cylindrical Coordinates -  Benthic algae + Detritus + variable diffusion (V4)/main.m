@@ -63,7 +63,7 @@ p.Zn   = 11;   % Number of grid-points (depth)
 p.Lmin = 0.1;  % Minimum lake depth (depth at land-water interface) [m]
 p.Lmax = 20;   % Maximum lake depth [m]
 p.W    = 20;   % Lake radius [m]
-p.alpha = 0.5; % Exponent governing the slope of the lake bottom
+p.alpha = 2.8; % Exponent governing the slope of the lake bottom
 
 % Lake Mesh, with an increasing depth from Lmin at the shore to Lmax
 % at the center of the lake (slope = alpha* (Lmin - Lmax)/W).
@@ -217,14 +217,14 @@ B = B0';
 y0 = [A(:); Rd(:); D(:); Rs(:); B(:)];
 
 %% Simulation of model
-%tend = 1.2518e+09; % end simulation time
-% t_span = [1:tend/15: tend]; % timespan of simulation. The intermediate steps tells ode15s when to save current state of the model.
+tend = 300; % end simulation time
+t_span = [1:tend/15: tend]; % timespan of simulation. The intermediate steps tells ode15s when to save current state of the model.
 
-%ode_opts = odeset( 'abstol' , 1e-7 , 'reltol', 1e-7, 'NonNegative',find(y0));
-ode_opts = odeset( 'abstol' , 1e-9 , 'reltol', 1e-9, 'NonNegative',find(y0), 'Events', @(t,y) eventfun_V4(t,y,p)); %,'OutputFcn',@odewbar);
-%ode_opts = odeset(  'reltol', 1e-8, 'NonNegative',find(y0), 'Events', @(t,y) eventfun_V4(t,y,p));
-[t,Y_t] = ode15s( @(t,Y) rhs_function_V4(t,Y,p), [0, inf], y0, ode_opts);
-%[t,Y_t] = ode15s( @(t,Y) rhs_function_v4(t,Y,p) ,[1 tend] , y0 , ode_opts);
+ode_opts = odeset( 'abstol' , 1e-7 , 'reltol', 1e-7, 'NonNegative',find(y0));
+%ode_opts = odeset( 'abstol' , 1e-9 , 'reltol', 1e-9, 'NonNegative',find(y0), 'Events', @(t,y) eventfun_V4(t,y,p)); %,'OutputFcn',@odewbar);
+%ode_opts = odeset( 'abstol' , 1e-9 , 'reltol', 1e-9, 'NonNegative',find(y0), 'Events', @(t,y) eventfun_V4(t,y,p));
+%[t,Y_t] = ode15s( @(t,Y) rhs_function_V4(t,Y,p), [0, inf], y0, ode_opts);
+[t,Y_t] = ode15s( @(t,Y) rhs_function_V4(t,Y,p) ,[1 tend] , y0 , ode_opts);
 
 %% recording of simulation time & saving workspace
 simTime = toc;
@@ -592,12 +592,12 @@ if(true)
 end
 
 %% video of plankton dynamics
-A_vid = false; % flags for videos, set to true if desired.
-Rd_vid = false;
-Rs_vid = true;
-Ab_vid = false;
-D_vid = false;
-lim_vid = false;
+A_vid  = 1; % flags for videos, set to true if desired.
+Rd_vid = 1;
+Rs_vid = 1;
+Ab_vid = 1;
+D_vid  = 1;
+lim_vid = 1;
 all_vid = false;
 % creating points for sediment plot
 sed_points = zeros(1,p.Xn-1);
@@ -622,7 +622,7 @@ if(false) % set to false if no videos are desired.
     % figure(1)
     %caxis([0 inf]);
     
-    for t_index = 1:20:(length(Y_t(:,1)))
+    for t_index = 1:100:(length(Y_t(:,1)))
         % Extracting state variables
         if(A_vid)
             A = Y_t(t_index,1:(p.Xn-1)*(p.Zn-1));

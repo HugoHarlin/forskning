@@ -4,7 +4,7 @@ function [I_matrix] = I_matrix_fn(p)
 I_matrix = zeros((p.Xn-1)*(p.Zn-1));
 
 %% old implementation
-if(true)
+if(false)
     for row=1:p.Zn-1 % row nr
         
         % the top row, all columns in matrix
@@ -22,8 +22,7 @@ end
 
 %% New implementation
 % better approximation of the light attenuation integral
-if(false)
-
+if(true)
     for row=1:p.Zn-1 % row nr
         for j = 1:row-1 % loop over all the rows in the matrix corresponding to row nr: row
             index_x  = j +(row-1)*(p.Xn-1);
