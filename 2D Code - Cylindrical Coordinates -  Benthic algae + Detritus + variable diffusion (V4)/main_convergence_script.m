@@ -25,8 +25,8 @@ tic
 % Written by Hugo Harlin 2019-2020
 
 %% loop over different background turbidies
-parfor p = 1:3
-    
+ res_vec = [27,31,44];
+parfor p = 1:length(res_vec)
     
     tic
     %% Model Parameters
@@ -60,12 +60,10 @@ parfor p = 1:3
     % 0 = no death. 1 = all algae that would have sunk through the sediment dies.
     pp.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
     % the rest is bound in particulate matter in the sediment.
-    
-    
-    
+       
     %% Lake topology and Mesh
     % Quantities relating to system size
-    res_vec = [4,16,32];
+   
     pp.Xn   = res_vec(p)+1;  % Number of grid-points (width)
     pp.Zn   = res_vec(p)+1;  % Number of grid-points (depth)
     pp.Lmin = 0.1; % Minimum lake depth (depth at land-water interface) [m]
@@ -109,15 +107,13 @@ parfor p = 1:3
     
     pp.volumes_cyl = vol_areas_cyl_3d_fn(pp);
     pp.Area_bottom_cyl = Area_bottom_cyl_fn(pp);
-    
-    
-    
+   
     %% Diffusion Coefficients
     dx = zeros(pp.Zn-1,pp.Xn-1); % Radial Turbulent-diffusion coefficient [m^2 day^-1]
     dz = zeros(pp.Zn-1,pp.Xn-1); % Vertical Turbulent-diffusion coefficient [m^2 day^-1]
     
-    diff_max_x = 100; % horizontal diffusion coefficient at the surface
-    diff_max_z = 100; % vertical diffusion coefficient at the surface
+    diff_max_x = 10; % horizontal diffusion coefficient at the surface
+    diff_max_z = 10; % vertical diffusion coefficient at the surface
     diff_min_x = diff_max_x % horizontal diffusion coefficient at the bottom
     diff_min_z = diff_max_z % vertical diffusion coefficient at the bottom
     
@@ -173,6 +169,7 @@ parfor p = 1:3
     
     ntot_0 =  pp.ntot_algae_0 + pp.ntot_dissolved_0 + pp.ntot_detritus_0 + pp.ntot_sed_0 + pp.ntot_benthic_0;
     pp.ntot_0 = ntot_0
+    
     %% state variables
     A = A0'; % transpose of matrices in order to use colon notation to reshape to vector form.
     Rd = Rd0';
@@ -182,7 +179,7 @@ parfor p = 1:3
     y0 = [A(:); Rd(:); D(:); Rs(:); B(:)];
     
     %% Simulation of model
-    tend = 10; % end simulation time
+    tend = 3000; % end simulation time
     %t_span = [1:tend/30: tend]; % timespan of simulation. The intermediate steps tells ode15s when to save current state of the model.
     %t_span = [1:tend];
     %ode_opts = odeset( 'abstol' , 1e-9 , 'reltol' , 1e-9 , 'Events',@(t,y) eventfun_V4(t,y,p) , 'NonNegative',(1:length(y0)));
@@ -193,7 +190,8 @@ parfor p = 1:3
     
     %% recording of simulation time & saving workspace
     simTime = toc;
-    file_name = "2D_convergence_res_V4_dx_" + "Xn_" + num2str(pp.Xn) + "_Zn_" + num2str(pp.Zn) + "_end_time_" + num2str(tend);
+    file_name = "2D_convergence_res_V4_" + "Xn_" + num2str(pp.Xn) + "_Zn_" + num2str(pp.Zn) ;
+   % file_name = "2D_convergence_res_V4_dx_" + "Xn_" + num2str(pp.Xn) + "_Zn_" + num2str(pp.Zn) + "_end_time_" + num2str(tend);
     parsave(file_name,pp,Y_t,t,simTime,y0);
     
 end

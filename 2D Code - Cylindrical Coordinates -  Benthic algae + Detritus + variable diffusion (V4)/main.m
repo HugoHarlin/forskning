@@ -30,10 +30,10 @@ p = struct;
 %%% Diffusion coefficients are defined below %%%
 p.I0 = 300;      % Light intensity at the surface [micro-mol photons m^-2 s^-1]
 p.kA = 0.0003;   % Specific light-attenuation coefficient of algal biomass [m^2 mg C^-1]
-p.kD = 0.0003;   % Specific light-attenuation coefficient of detritus [m^2 mg C^-1]
 p.kB = 0.0003;   % Specific light-attenuation coefficient of Benthic biomass [m^2 mg C^-1]
+p.kD = 0.00003;  % Specific light-attenuation coefficient of detritus [m^2 mg C^-1]
 p.kbg = 0.2;     % Background light-attenuation coefficient [m^-1]
-p.lbg_A = 0.08;  % 0.08; % Specific algal maintenance respiration losses [day^-1]
+p.lbg_A =  0.08; % Specific algal maintenance respiration losses [day^-1]
 p.Ad = 0.02;     % algal death rate [day^-1]
 p.M = 1.5;       % Half-saturation constant of algal nutrient uptake [mg P m^-3]
 p.M_benth = 1.5; % Half-saturation constant of benthic algae nutrient uptake [mgPm^-3]
@@ -60,10 +60,10 @@ p.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrien
 % Quantities relating to system size
 p.Xn   = 11;   % Number of grid-points (width)
 p.Zn   = 11;   % Number of grid-points (depth)
-p.Lmin = 0.1;  % Minimum lake depth (depth at land-water interface) [m]
+p.Lmin = 0.1;  % Minimum lake depth (depth at land-water interface) [m]  % 6.795 seems to be the critical point where the phytoplankton takes over ( no benthic algae)
 p.Lmax = 20;   % Maximum lake depth [m]
 p.W    = 20;   % Lake radius [m]
-p.alpha = 2.8; % Exponent governing the slope of the lake bottom
+p.alpha = 1.5; % Exponent governing the slope of the lake bottom
 
 % Lake Mesh, with an increasing depth from Lmin at the shore to Lmax
 % at the center of the lake (slope = alpha* (Lmin - Lmax)/W).
@@ -138,6 +138,17 @@ p.dz = dz;
 %  p.dx(9,:) = 2;
 %  p.dx(10,:) = 1;
 
+% 
+% %%%%% manual setting of the diffusion coefficients, for a resolution of 20x20 cells %%%%% 
+% dx(1:5,:) = 100;
+% dx(6,:) = 2.5;
+% dx(7,:) = 1;
+% dx(8,:) = 2.5;
+% dx(9:end,:) = 10;
+% 
+% p.dx = dx;
+% p.dz = dx;
+
 %% variable resuspension coefficient
 % A type II functional response function is used to
 %p.resus_depth
@@ -157,11 +168,11 @@ p.I_matrix = I_matrix_fn(p);
 
 %% Inital Conditions
 
-A0  = 1.0*ones(p.Zn-1, p.Xn-1);     % Initial Algal carbon density [mg C m^-3]
-Rd0 = 10.000*ones(p.Zn-1, p.Xn-1);  % initial concentration of dissolved nutrients [mg P m^-3]
-D0  = 1.000*ones(p.Zn-1, p.Xn-1);   % initial concentration of detritus [mg P m^-3]
-Rs0 = 1.0*ones(1, p.Xn-1);          % initial concentration of sediment nutrient density [mg P m^-2]
-B0  = 1.00*ones(1, p.Xn-1);         % initial concentration of benthic algal density [mg C m^-2]
+A0  = 0*ones(p.Zn-1, p.Xn-1);    % Initial concentration of phytoplankton [mg C m^-3]
+Rd0 = 10*ones(p.Zn-1, p.Xn-1); % initial concentration of dissolved nutrients [mg P m^-3]
+D0  = 0.000*ones(p.Zn-1, p.Xn-1);  % initial concentration of detritus [mg P m^-3]
+Rs0 = 1*ones(1, p.Xn-1);         % initial concentration of sediment nutrient density [mg P m^-2]
+B0  = 1.00*ones(1, p.Xn-1);        % initial concentration of benthic algal density [mg C m^-2]
 %A0(1,:)= 1.0;
 %A0(:,3)= 3.0;
 % A0(:,5)= 1.0;
@@ -217,14 +228,15 @@ B = B0';
 y0 = [A(:); Rd(:); D(:); Rs(:); B(:)];
 
 %% Simulation of model
-tend = 300; % end simulation time
-t_span = [1:tend/15: tend]; % timespan of simulation. The intermediate steps tells ode15s when to save current state of the model.
+%tend = 100; % end simulation time
+%t_span = [1:tend/15: tend]; % timespan of simulation. The intermediate steps tells ode15s when to save current state of the model.
 
-ode_opts = odeset( 'abstol' , 1e-7 , 'reltol', 1e-7, 'NonNegative',find(y0));
+%ode_opts = odeset( 'abstol' , 1e-9 , 'reltol', 1e-9, 'NonNegative',find(y0));
 %ode_opts = odeset( 'abstol' , 1e-9 , 'reltol', 1e-9, 'NonNegative',find(y0), 'Events', @(t,y) eventfun_V4(t,y,p)); %,'OutputFcn',@odewbar);
-%ode_opts = odeset( 'abstol' , 1e-9 , 'reltol', 1e-9, 'NonNegative',find(y0), 'Events', @(t,y) eventfun_V4(t,y,p));
-%[t,Y_t] = ode15s( @(t,Y) rhs_function_V4(t,Y,p), [0, inf], y0, ode_opts);
-[t,Y_t] = ode15s( @(t,Y) rhs_function_V4(t,Y,p) ,[1 tend] , y0 , ode_opts);
+ode_opts = odeset( 'abstol' , 1e-9 , 'reltol', 1e-9, 'NonNegative',find(y0), 'Events', @(t,y) eventfun_V4(t,y,p));
+%ode_opts = odeset( 'abstol' , 1e-9 , 'reltol', 1e-9, 'Events', @(t,y) eventfun_V4(t,y,p));
+[t,Y_t] = ode15s( @(t,Y) rhs_function_V4(t,Y,p), [0, inf], y0, ode_opts);
+%[t,Y_t] = ode15s( @(t,Y) rhs_function_V4(t,Y,p) ,[1 tend] , y0 , ode_opts);
 
 %% recording of simulation time & saving workspace
 simTime = toc;
@@ -254,21 +266,20 @@ n_sediment_end  = Rs.*p.Area_bottom_cyl;
 n_benthic_end   = B.*p.q_benth.*p.Area_bottom_cyl;
 ntot_end        = sum(sum(n_algae_end)) + sum(sum(n_dissolved_end)) + sum(sum(n_detritus_end)) + sum(n_sediment_end) + sum(n_benthic_end);
 
+% creation of refined grid for interpolation.
+[X_vol_new,Y_vol_new] = grid_interpolation_fn(p,100,100);
+
 %% Calculation of the light intensity
 I = zeros(p.Zn-1,p.Xn-1);
-
-for x = 1:p.Xn-1
-    integral = 0;
-    for z=1:p.Zn-1
-        integral = integral + p.Z(z,x) *(p.kA*A(z,x) + p.kD*D(z,x));
-        I(z,x) = p.I0 * exp(-integral -p.kbg*p.Z(z,x));
-    end
-end
+A_temp = A';
+D_temp = D';
+Z_vol_temp = p.Z_vol';
+I_alt = p.I0 .* exp(-p.I_matrix*(p.kA.*A_temp(:) + p.kD.*D_temp(:)) - p.kbg.*Z_vol_temp(:));
+I = reshape(I_alt,[(p.Xn-1) (p.Zn-1)])';
+p.I = I;
 
 %% Figure index
 figureIndex = 1;
-% creation of refined grid for interpolation.
-[X_vol_new,Y_vol_new] = grid_interpolation_fn(p,100,100);
 
 %% Plot of simulation results
 if(true)
@@ -300,7 +311,7 @@ if(true)
         colormap(jet)
         set(gca,'fontSize',font_size);
         z_theory_algae = 1/p.kbg *log((p.I0*(p.Gmax/(p.lbg_A+p.Ad) -1))/p.H); % theoretical maximum depth for benthic growth if light limited,
-         z_theory_algae = round( z_theory_algae,2);
+        z_theory_algae = round( z_theory_algae,2);
         % at this depth the light limited growth is equal to respiration losses and death rate.
         if(z_theory_algae < p.Lmax)
             hold on
@@ -386,17 +397,48 @@ if(true)
         benth_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
         query_points = linspace(0,p.W,200);
         %benth_interp = interp1(sed_points,B, query_points,'makima');
-        benth_interp = interp1(sed_points,B, query_points,'pchip');
+        benth_interp = interp1(sed_points,B.*p.q_benth, query_points,'pchip'); % interpolated net growtht values, unit [mgP/(m^2 day)]
         figure(figureIndex)
         movegui(figureIndex,[2300 170]);
         figureIndex = figureIndex +1;
         x = [1:(p.W-1)/(p.Xn-1):p.W];
-        plot(query_points,p.q_benth.*benth_interp);
+        plot(query_points, benth_interp);
         title("Benthic Algae [mgP/m^2]");
         ylabel("concentration [mgP/m^2]");
         xlabel("distance from lake center [m]");
         ylim([0 inf]);
         set(gca,'fontSize',font_size);
+        hold on
+        
+        max_survival_depth = -1./p.kbg .* log(p.H_benth./( p.I0.*(p.Gmax_benth./p.lbg_benth -1) )); % maximum survival depth of benthic algae assuming no phytoplankton
+        max_survival_depth_x = p.W*((max_survival_depth./p.Lmax -1)*(p.Lmax/(p.Lmin-p.Lmax)))^(1/p.alpha); % corressponding distance from the lake center
+        
+        
+        if(  max_survival_depth_x  < p.Lmax && max_survival_depth_x > 0)
+            xline(max_survival_depth_x, '--'); % marking out the maximum survival depth as a vertical line.
+        end
+        
+        % plot of maximal benthic concentration at each point given light
+        % limitation only.
+        if(true)
+            % Available light at the very bottom of the lake, at the center of the
+            % bottom border of each cell. (previously the light at the center of
+            % each bottom cell was used, but the light is attenuated a bit more
+            % than that at the very bottom.)
+            I_bottom = p.I(end,:).*exp(-( 0.5*(p.Z(end,1:end-1)+ p.Z(end,2:end)) - p.Z_vol(end,:)).*(p.kA.*A(end,:) + p.kD.*D(end,:) + p.kbg));
+            
+            syms b
+            B_max = zeros(1, p.Xn-1); % maximum benthic concentration at each point if light limited
+            for i =1:p.Xn-1
+                eq =   p.Gmax_benth./p.kB.*log((p.H_benth + I_bottom(i))./(p.H_benth + I_bottom(i).*exp(-p.kB.*b))) == p.lbg_benth.*b ;
+                B_max(i) =  vpasolve(eq,b,1e20);
+            end
+            max_benth_interp = interp1(sed_points,B_max.*p.q_benth, query_points,'pchip');
+            
+            % plot(query_points, max_benth_interp);
+            hold off
+        end
+        
     end
     
     %plot of algal production G
@@ -482,9 +524,9 @@ if(true)
             end
         end
         
-        z_theory_benth = 1/p.kbg *log((p.I0*(p.Gmax_benth/p.lbg_benth -1))/p.H_benth); % theoretical maximum depth for benthic growth if light limited,
+        z_theory_algae = 1/p.kbg *log((p.I0*(p.Gmax/(p.lbg_A+p.Ad) -1))/p.H); % theoretical maximum depth for benthic growth if light limited,
         % at this depth the light limited growth is equal to respiration losses and death rate.
-         z_theory_algae = round( z_theory_algae,2);
+        z_theory_algae = round( z_theory_algae,2);
         
         figure(figureIndex)
         movegui(figureIndex,[2880 170]);
@@ -494,15 +536,17 @@ if(true)
         az =0;
         el = 90;
         view(az,el);
+        
         set(gca, 'Ydir', 'reverse')
-        colormap(jet)
+        map = [0 0 0.75; 0.75 0 0];
+        colormap(gca,map);
         title("light vs nutrient limitation");
         xlabel("red = nutrient limited, blue = light limited.");
         ylabel("Depth [m]");
         
-        if(z_theory_benth < p.Lmax)
+        if(z_theory_algae < p.Lmax)
             hold on
-            plot3([0; p.W],[ z_theory_benth ; z_theory_benth],[2 2], '--','color','black','LineWidth',2);
+            plot3([0; p.W],[ z_theory_algae ; z_theory_algae],[2 2], '--','color','black','LineWidth',2);
             mystr = "Max survival depth: " + num2str(z_theory_algae) + "m";
             h = annotation('textbox','String',mystr,'fontsize',15,'EdgeColor','none');
             h.Position=[.54 .37 .3581 .0879];
@@ -537,13 +581,99 @@ if(true)
         set(h1, 'YAxisLocation', 'Right')
     end
     
+    % plot of nutrient leakage over time
+    if(true)
+        leakage   = zeros(1,length(t));
+        algae     = zeros(1,length(t));
+        dissolved = zeros(1,length(t));
+        beth      = zeros(1,length(t));
+        
+        for i = 1:length(t)
+            A  = Y_t(i,1:(p.Xn-1)*(p.Zn-1));
+            Rd = Y_t(i,(p.Xn-1)*(p.Zn-1)+1 : 2*(p.Xn-1)*(p.Zn-1));
+            D  = Y_t(i,2*(p.Xn-1)*(p.Zn-1)+1 : 3*(p.Xn-1)*(p.Zn-1));
+            Rs = Y_t(i,3*(p.Xn-1)*(p.Zn-1) +1 : 3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1));
+            B  = Y_t(i,3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1)+1: end);
+            % Reshaping the vectors into matrices
+            A  = reshape(A, [p.Xn-1, p.Zn-1]);
+            Rd = reshape(Rd, [p.Xn-1, p.Zn-1]);
+            D  = reshape(D, [p.Xn-1, p.Zn-1]);
+            A  = A';
+            Rd = Rd';
+            D  = D';
+            
+            %Calculating nutrient content at t = Tend
+            n_algae_end     = p.volumes_cyl.*A*p.q;
+            n_dissolved_end = p.volumes_cyl.*Rd;
+            n_detritus_end  = p.volumes_cyl.*D;
+            n_sediment_end  = Rs.*p.Area_bottom_cyl;
+            n_benthic_end   = B.*p.q_benth.*p.Area_bottom_cyl;
+            ntot_end        = sum(sum(n_algae_end)) + sum(sum(n_dissolved_end)) + sum(sum(n_detritus_end)) + sum(n_sediment_end) + sum(n_benthic_end);
+            leakage(i)      = (p.ntot_0 - ntot_end)/p.ntot_0;
+        end
+        figure(figureIndex)
+        figureIndex = figureIndex +1;
+        plot(t,leakage);
+        %plot(leakage);
+        title('(ntot(t)-ntot0)/ ntot0');
+    end
     
+    % plot of benthic growth
+    if(false)
+        
+        figure(figureIndex)
+        figureIndex = figureIndex +1;
+        movegui(gca,[580 170]);
+        clf(gca);
+        
+        % Bottom sediment interaction and benthic algal growth
+        i = p.Zn-1; % eta
+        j = 1:p.Xn-1; % xi
+        
+        % Available light at the very bottom of the lake, at the center of the
+        % bottom border of each cell. (previously the light at the center of
+        % each bottom cell was used, but the light is attenuated a bit more
+        % than that at the very bottom.)
+        B = B';
+        I_bottom = p.I(end,:).*exp(-( 0.5*(p.Z(end,1:end-1)+ p.Z(end,2:end)) - p.Z_vol(end,:)).*(p.kA.*A(end,:) + p.kD.*D(end,:) + p.kbg));
+        
+        % Bethic algae net growth
+        nutrient_limited_growth =  p.Gmax_benth.*B(j)'.*(Rd(i,j)./(Rd(i,j)+p.M_benth));
+        light_limited_growth = p.Gmax_benth./p.kB.*log((p.H_benth + I_bottom)./(p.H_benth + I_bottom.*exp(-p.kB.*B(j)')));
+        
+        dBdt = zeros(1,p.Xn-1);
+        dBdt(j) =  min(nutrient_limited_growth, light_limited_growth) - p.lbg_benth*B(j)';
+        
+        % creating points for benthic algae plot
+        benth_points = zeros(1,p.Xn-1);
+        benth_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
+        query_points = linspace(0,p.W,200);
+        %benth_interp = interp1(sed_points,B, query_points,'makima');
+        net_growth_interp = interp1(sed_points,p.q_benth.*dBdt,query_points,'pchip'); % net benthic growth in [mgp/m^2 day]
+        light_limited_interp =  interp1(sed_points,p.q_benth.*(light_limited_growth - p.lbg_benth*B(j)'),query_points,'pchip') ; % net benthic growth in [mgp/m^2 day] if light limited only
+        nutrient_limited_interp =  interp1(sed_points,p.q_benth.*( nutrient_limited_growth - p.lbg_benth*B(j)'),query_points,'pchip'); % net benthic growth in [mgp/m^2 day]  if nutrient limited only
+        plot(query_points,net_growth_interp,query_points,light_limited_interp,query_points,nutrient_limited_interp);
+        grid off
+        ylabel("growth [mgP/(m^2 day)]");
+        xlabel("distance from lake center [m]");
+        title("Benthic growth");
+        ylim([0 inf]);
+        legend("net growth", "light limited", "nutrient limited*");
+        set(gca,'FontSize',font_size)
+    end
+    
+end
+
+%% nutrient portions and leakage 
+    z_theory_algae = 1/p.kbg *log((p.I0*(p.Gmax/(p.lbg_A+p.Ad) -1))/p.H);
     perc_algae = sum(sum(n_algae_end))/ntot_end;
     perc_dissolved = sum(sum(n_dissolved_end))/ntot_end;
     perc_detritus = sum(sum(n_detritus_end))/ntot_end;
     perc_sediment = sum(n_sediment_end)/ntot_end;
     perc_benthic = sum(n_benthic_end)/ntot_end;
+    [x,isterm,dir] = eventfun_V4(t(end),Y_t(end,:)',p);
     
+    disp("Norm of the time derivatives at t_end (should be lower than set threshold): " + num2str(x));
     disp("portion of leaked nutrients: " + num2str(abs((p.ntot_0-ntot_end) /p.ntot_0 )));
     disp("leaked nutrients [mgP]: " + num2str(abs(p.ntot_0-ntot_end)));
     disp("portion of nutrients in phytoplankton: " + num2str(perc_algae));
@@ -551,53 +681,16 @@ if(true)
     disp("portion of nutrients in detritus: " + num2str(perc_detritus));
     disp("portion of nutrients in sediment: " + num2str(perc_sediment));
     disp("portion of nutrients in benthic algae: " + num2str(perc_benthic));
-    disp("_____________________________________________");
-end
-
-%% plot of nutrient leakage over time
-if(true)
-    leakage   = zeros(1,length(t));
-    algae     = zeros(1,length(t));
-    dissolved = zeros(1,length(t));
-    beth      = zeros(1,length(t));
-    
-    
-    for i = 1:length(t)
-        A  = Y_t(i,1:(p.Xn-1)*(p.Zn-1));
-        Rd = Y_t(i,(p.Xn-1)*(p.Zn-1)+1 : 2*(p.Xn-1)*(p.Zn-1));
-        D  = Y_t(i,2*(p.Xn-1)*(p.Zn-1)+1 : 3*(p.Xn-1)*(p.Zn-1));
-        Rs = Y_t(i,3*(p.Xn-1)*(p.Zn-1) +1 : 3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1));
-        B  = Y_t(i,3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1)+1: end);
-        % Reshaping the vectors into matrices
-        A  = reshape(A, [p.Xn-1, p.Zn-1]);
-        Rd = reshape(Rd, [p.Xn-1, p.Zn-1]);
-        D  = reshape(D, [p.Xn-1, p.Zn-1]);
-        A  = A';
-        Rd = Rd';
-        D  = D';
-        
-        %Calculating nutrient content at t = Tend
-        n_algae_end     = p.volumes_cyl.*A*p.q;
-        n_dissolved_end = p.volumes_cyl.*Rd;
-        n_detritus_end  = p.volumes_cyl.*D;
-        n_sediment_end  = Rs.*p.Area_bottom_cyl;
-        n_benthic_end   = B.*p.q_benth.*p.Area_bottom_cyl;
-        ntot_end        = sum(sum(n_algae_end)) + sum(sum(n_dissolved_end)) + sum(sum(n_detritus_end)) + sum(n_sediment_end) + sum(n_benthic_end);
-        leakage(i)      = (-ntot_end + p.ntot_0)/p.ntot_0;
-    end
-    figure(figureIndex)
-    figureIndex = figureIndex +1;
-    plot(t,leakage);
-    title('(ntot(t)-ntot0)/ ntot0');
-end
+    disp("____________________________________________________");
 
 %% video of plankton dynamics
 A_vid  = 1; % flags for videos, set to true if desired.
 Rd_vid = 1;
 Rs_vid = 1;
-Ab_vid = 1;
+B_vid = 1;
 D_vid  = 1;
 lim_vid = 1;
+B_growth_vid = 1;
 all_vid = false;
 % creating points for sediment plot
 sed_points = zeros(1,p.Xn-1);
@@ -605,24 +698,18 @@ sed_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
 
 font_size = 18;
 
-if(false) % set to false if no videos are desired.
+if(0) % set to false if no videos are desired.
     close all
     if(A_vid)   A_video = VideoWriter('plankton.avi');             open(A_video); end
     if(Rd_vid)  Rd_video = VideoWriter('dissolved_nutrients.avi'); open(Rd_video);end
     if(D_vid)   D_video = VideoWriter('detritus_nutrients.avi');   open(D_video);end
     if(Rs_vid)  Rs_video = VideoWriter('Sediment_nutrients.avi');  open(Rs_video); end
-    if(Ab_vid)  Ab_video = VideoWriter('benthic_algae.avi');       open(Ab_video); end
+    if(B_vid)  B_video = VideoWriter('benthic_algae.avi');       open(B_video); end
     if(lim_vid) lim_video = VideoWriter('growth_limitation.avi');  open(lim_video); end
     if(all_vid) all_video = VideoWriter('everything.avi');         open(all_video); end
+    if(B_growth_vid) B_growth_video = VideoWriter('benth_growth.avi');  open(B_growth_video); end
     
-    % axis tight manual
-    % set(gca,'nextplot','replacechildren');
-    
-    
-    % figure(1)
-    %caxis([0 inf]);
-    
-    for t_index = 1:100:(length(Y_t(:,1)))
+    for t_index = 5000:50:(length(Y_t(:,1)))
         % Extracting state variables
         if(A_vid)
             A = Y_t(t_index,1:(p.Xn-1)*(p.Zn-1));
@@ -642,7 +729,7 @@ if(false) % set to false if no videos are desired.
         if(Rs_vid)
             Rs = Y_t(t_index, 3*(p.Xn-1)*(p.Zn-1) +1 : 3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1));
         end
-        if(Ab_vid)
+        if(B_vid)
             B = Y_t(t_index, 3*(p.Xn-1)*(p.Zn-1) + (p.Xn-1) +1 : end);
         end
         if(all_vid)
@@ -773,41 +860,113 @@ if(false) % set to false if no videos are desired.
         end
         
         %%%% Benthic algae [mgC/m^2] %%%%
-        if(Ab_vid)
+        if(B_vid)
             f5 = figure(5);
             movegui(f5,[2300 170]);
             clf(f5);
+            % max survival depth of benthic algae
+            max_survival_depth = -1./p.kbg .* log(p.H_benth./( p.I0.*(p.Gmax_benth./p.lbg_benth -1) )); % maximum survival depth of benthic algae assuming no phytoplankton
+            max_survival_depth_x = p.W*((max_survival_depth./p.Lmax -1)*(p.Lmax/(p.Lmin-p.Lmax)))^(1/p.alpha); % corressponding distance from the lake center
+            
             % creating points for benthic algae plot
             benth_points = zeros(1,p.Xn-1);
             benth_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
             query_points = linspace(0,p.W,200);
             %benth_interp = interp1(sed_points,B, query_points,'makima');
-            benth_interp = interp1(sed_points,B,query_points,'pchip');
+            benth_interp = interp1(sed_points,p.q_benth.*B,query_points,'pchip');
             x = [1:(p.W-1)/(p.Xn-1):p.W];
-            plot(query_points,p.q_benth.*benth_interp);
+            plot(query_points,benth_interp);
+            hold on
+            %             if(  max_survival_depth_x  < p.Lmax)
+            %                 xline(max_survival_depth_x, '--'); % marking out the maximum survival depth as a vertical line.
+            %             end
             grid off
-            ylabel("concentration [mgC/m^2]");
+            ylabel("concentration [mgP/m^2]");
             xlabel("distance from lake center [m]");
-            title("Benthic Algae  [mgC/m^2]");
+            title("Benthic Algae  [mgP/m^2]");
             ylim([0 inf]);
             set(gca,'FontSize',font_size)
             drawnow
             frame = getframe(gcf);
-            writeVideo(Ab_video,frame);
+            writeVideo(B_video,frame);
         end
+        
+        %%%% Benthic algae net growth [mgC/m^2] %%%%
+        if(B_growth_vid)
+            f7 = figure(7);
+            movegui(f7,[580 170]);
+            clf(f7);
+            
+            % Bottom sediment interaction and benthic algal growth
+            i = p.Zn-1; % eta
+            j = 1:p.Xn-1; % xi
+            
+            % Available light at the very bottom of the lake, at the center of the
+            % bottom border of each cell. (previously the light at the center of
+            % each bottom cell was used, but the light is attenuated a bit more
+            % than that at the very bottom.)
+            B = B';
+            I_bottom = p.I(end,:).*exp(-( 0.5*(p.Z(end,1:end-1)+ p.Z(end,2:end)) - p.Z_vol(end,:)).*(p.kA.*A(end,:) + p.kD.*D(end,:) + p.kbg));
+            
+            % Bethic algae net growth
+            nutrient_limited_growth =  p.Gmax_benth.*B(j)'.*(Rd(i,j)./(Rd(i,j)+p.M_benth));
+            light_limited_growth = p.Gmax_benth./p.kB.*log((p.H_benth + I_bottom)./(p.H_benth + I_bottom.*exp(-p.kB.*B(j)')));
+            
+            dBdt = zeros(1,p.Xn-1);
+            dBdt(j) =  min(nutrient_limited_growth, light_limited_growth) - p.lbg_benth*B(j)';
+            
+            % creating points for benthic algae plot
+            benth_points = zeros(1,p.Xn-1);
+            benth_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
+            query_points = linspace(0,p.W,200);
+            net_growth_interp = interp1(sed_points,p.q_benth.*dBdt,query_points,'pchip'); % net benthic growth in [mgp/m^2 day]
+            light_limited_interp =  interp1(sed_points,p.q_benth.*(light_limited_growth - p.lbg_benth*B(j)'),query_points,'pchip') ; % net benthic growth in [mgp/m^2 day] if light limited only
+            nutrient_limited_interp =  interp1(sed_points,p.q_benth.*( nutrient_limited_growth - p.lbg_benth*B(j)'),query_points,'pchip'); % net benthic growth in [mgp/m^2 day]  if nutrient limited only
+            plot(query_points,net_growth_interp,query_points,light_limited_interp,query_points,nutrient_limited_interp);
+            % plot(query_points,net_growth_interp);
+            grid off
+            ylabel("net growth [mgP/(m^2 day)]");
+            xlabel("distance from lake center [m]");
+            title("Benthic growth [mgP/(m^2 day)]");
+            legend("net growth", "light lim.", "nutrient lim.");
+            set(gca,'FontSize',font_size)
+            drawnow
+            frame = getframe(gcf);
+            writeVideo(B_growth_video,frame);
+            
+            
+            
+            %%%% growth rate plot benthic algae (no self shadowing) %%%%
+            
+            % plot of nutrient and light limitation at the bottom
+            f8 = figure(8);
+            movegui(f8,[580 700]);
+            clf(f8);
+            G_bottom = p.Gmax_benth .* min(Rd(end,:)./(Rd(end,:)+p.M_benth) , I(end,:)./(I(end,:)+p.H_benth)) ;
+            G_bottom =  interp1(sed_points,p.q_benth.*G_bottom,query_points,'pchip'); % net benthic growth in [mgp/m^2 day]
+            light_interp = interp1(sed_points,p.q_benth.*(p.Gmax_benth.*I(end,:)./(I(end,:)+p.H_benth)),query_points,'pchip');
+            nutr_interp = interp1(sed_points,p.q_benth.* (p.Gmax_benth.*Rd(end,:)./(Rd(end,:)+p.M_benth)),query_points,'pchip');
+            % plot(query_points, G_bottom, query_points, light_interp, query_points, nutr_interp);
+            plot( query_points, light_interp, query_points, nutr_interp, query_points, p.q_benth.*p.lbg_benth.*ones(1,length(query_points)), "--"); % no plot of the net growth, since this is simply the minimum of the two curves.
+            grid off
+            legend("light lim","nutrient lim");
+            title("benthic per capita  growth (no shadowing) ");
+            ylabel("growth [mgP/(m^2 day)]");
+            xlabel("distance from lake center [m]");
+            set(gca,'FontSize',font_size)
+        end
+        
         
         %%%% light/nutrient limitation plot %%%%
         if(lim_vid)
             % calculation  of light/nutrient limitation at each point in lake.
             I = zeros(p.Zn-1,p.Xn-1);
-            
-            for x = 1:p.Xn-1
-                integral = 0;
-                for z=1:p.Zn-1
-                    integral = integral + p.Z(z,x) *(p.kA*A(z,x) + p.kD*D(z,x));
-                    I(z,x) = p.I0 * exp(-integral -p.kbg*p.Z(z,x));
-                end
-            end
+            A_temp = A';
+            D_temp = D';
+            Z_vol_temp = p.Z_vol';
+            I_alt = p.I0 .* exp(-p.I_matrix*(p.kA.*A_temp(:) + p.kD.*D_temp(:)) - p.kbg.*Z_vol_temp(:));
+            I = reshape(I_alt,[(p.Xn-1) (p.Zn-1)])';
+            p.I = I;
             
             Rd = Y_t(t_index, (p.Xn-1)*(p.Zn-1)+1 : 2*(p.Xn-1)*(p.Zn-1));
             Rd = reshape(Rd, [(p.Xn-1), (p.Zn-1)]);
@@ -843,7 +1002,8 @@ if(false) % set to false if no videos are desired.
             grid off
             view(az,el);
             set(gca, 'Ydir', 'reverse')
-            colormap(jet)
+            map = [0 0 0.75; 0.75 0 0];
+            colormap(gca,map);
             set(gca,'FontSize',font_size)
             title("light vs nutrient limitation");
             xlabel("red = nutrient limited, blue = light limited.");
@@ -1012,13 +1172,13 @@ if(false) % set to false if no videos are desired.
         
     end
     
-    
     if(A_vid)   close(A_video);  end
     if(Rd_vid)  close(Rd_video); end
     if(D_vid)   close(D_video); end
     if(Rs_vid)  close(Rs_video); end
-    if(Ab_vid)  close(Ab_video); end
+    if(B_vid)  close(B_video); end
     if(lim_vid) close(lim_video); end
     if(all_vid) close(all_video); end
+    if(B_growth_vid) close(B_growth_video); end
 end
 

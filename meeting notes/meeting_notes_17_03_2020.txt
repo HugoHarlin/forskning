@@ -1,0 +1,64 @@
+
+Anteckningar inför möte med Seb 17/3 - 2020
+
+------ responsvariabler & parametrar ------ 
+
+ Biotiska och abiotiska faktorer
+ . total mängd P i sjön
+ . snittkoncentration total P (alla former) i sjön
+ . andelen P i biomassa
+ . andel phytoplankton i P
+ . andel levandsbar volym i sjön (från ytan ner till z_max)
+ . diffusions-koefficienter
+ . kbg
+ . resuspension rate
+
+ Geometri
+ . lutningsparametern alpha
+ . snittdjup
+ . maxdjup
+ . bredd
+ . kvoten maxdjup/bredd 
+ . kvoten (snittdjup)/bredd 
+ . fördelningskurva över djupet (andel av sjöns yta som funktion av djupet)
+ . fördelningskurva över djupet (andel av sjöns volym som funktion av djupet)
+
+frågor: 
+ - går det att få alternative stable states? kan vi tvinga phytoplankton att dominera med initial conditions?
+ - om vi pytsar i tillräkligt med näring, borde inte phytoplankton dominera?
+ - vad händer om det är ännu mer näringsfattigt, säg en faktor 10 mindre löst P i början?
+ - är det så enkelt att mycket näring gynnar phytoplankton och låg näring gynnar  bentiska alger?
+  (sweetspot i gräddzonen antagligen)
+
+
+ - primärproduktion: tillväxterm excluderat förluster (mgC/(m^3 day))
+
+
+------- artikel ------- 
+- Vadeboncoeur et. al. 2014
+kan bli artikel av detta
+ vertikal djup-profil som imiterar striatifierade sjöar
+- man skulle kunna köra samma diffusionskoefficienter i x och z-led
+- stratifiering: relative thermal resistance
+- mellan tummen och pekfringret: 100 [m^2 day^-1] i ytan, 
+  språngskickt vid 5 meter som är 3-4 meter tjockt, ner till 1. 10 i diff på botten
+
+
+ ----- säsongsvarians ----
+ - 300 [micro-mol photons m^-2 s^-1] ljusintensitet är sommarmaximum (alt medelvärde så det går att jämföra med tidigare simuleringar)
+ - ta en typsjö, ha endast säsongsberoende ljustillsättning (sinus, medelvärde på 300 lämpligen)
+ - ett annat exempel är full blandning i sjön en eller två gånger om året
+ - vertikal profil
+
+
+------ Ny version V5 ------
+ - bentiska alger och phytoplankton är samma
+ - phytoplankton blir bentiska när de sjunker ner till bottem
+ - bentiska resuspenderar till phytoplankton
+ - en och samma population parametermässigt
+
+ ____________________________________________________
+
+
+börja med stratifierad sjö, språngskikt diffusionskoefficienter
+ --->>> samma näringsmängd per sjöarea istället för per volym <<<---
