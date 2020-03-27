@@ -24,37 +24,9 @@ tic
 %
 % Written by Hugo Harlin 2019-2020
 
-%% Model Parameters
-% all parameters are organized in a struct p for implementation convenience
+
+%%  all parameters are organized in a struct p for implementation convenience
 p = struct;
-%%% Diffusion coefficients are defined below %%%
-p.I0 = 300;      % Light intensity at the surface [micro-mol photons m^-2 s^-1]
-p.kA = 0.0003;   % Specific light-attenuation coefficient of algal biomass [m^2 mg C^-1]
-p.kB = 0.0003;   % Specific light-attenuation coefficient of Benthic biomass [m^2 mg C^-1]
-p.kD = 0.00003;  % Specific light-attenuation coefficient of detritus [m^2 mg C^-1]
-p.kbg = 0.2;     % Background light-attenuation coefficient [m^-1]
-p.lbg_A =  0.08; % Specific algal maintenance respiration losses [day^-1]
-p.Ad = 0.02;     % algal death rate [day^-1]
-p.M = 1.5;       % Half-saturation constant of algal nutrient uptake [mg P m^-3]
-p.M_benth = 1.5; % Half-saturation constant of benthic algae nutrient uptake [mgPm^-3]
-p.Gmax = 1.08;   % Maximum specific phytoplankton production rate [day^-1]
-p.Gmax_benth = 1.08; % Maximum specific benthic algae production rate [day^-1]
-p.H = 120.0;         % Half-saturation constant of light-dependent algal production [micro-mol photons m^-2 s^-1]
-p.H_benth = 120.0;   % Half-saturation constant of light-dependent benthic algal production [micro-mol photons m^-2 s^-1]
-p.q = 0.0244;        % Algal nutrient quota, Redfield ratio [mgP/mgC]
-p.q_benth =  0.0244; % Benthic algae nutrient quota, Redfield ratio [mgP/mgC]
-p.lbg_benth = 0.1;   % Specific benthic algae maintenance respiration losses [day^-1]
-p.r = 0.02;          % Specific mineralization rate of sedimented nutrients [day^-1]
-p.vA = 0.1;          % Algal sinking speed [m day^-1]
-p.vD = 0.25;         % detritus sinking speed [m day^-1]
-p.Dbg = 0.02;        % remineralization of detritus in the water column [day^-1]
-p.resus = 0.2;       % resuspension rate of the detritus from the sediment. [day^-1]
-p.resus_Max = 0.02;  % Maximum resuspension rate of the detritus in the sediment [day^-1]
-p.resus_H = 8;       % half saturation constant of the resuspension rate functional response [m^2 day^-1]
-p.death_rate = 1;    % coefficient governing the proportion of sinking algae at the bottom that dies.
-% 0 = no death. 1 = all algae that would have sunk through the sediment dies.
-p.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
-% the rest is bound in particulate matter in the sediment.
 
 %% Lake topology and Mesh
 % Quantities relating to system size
@@ -63,7 +35,7 @@ p.Zn   = 11;   % Number of grid-points (depth)
 p.Lmin = 0.1;  % Minimum lake depth (depth at land-water interface) [m]  % 6.795 seems to be the critical point where the phytoplankton takes over ( no benthic algae)
 p.Lmax = 20;   % Maximum lake depth [m]
 p.W    = 20;   % Lake radius [m]
-p.alpha = 1.5; % Exponent governing the slope of the lake bottom
+p.alpha = 0.5; % Exponent governing the slope of the lake bottom
 
 % Lake Mesh, with an increasing depth from Lmin at the shore to Lmax
 % at the center of the lake (slope = alpha* (Lmin - Lmax)/W).
@@ -105,6 +77,43 @@ p.Z_vol = Z_vol;
 
 p.volumes_cyl = vol_areas_cyl_3d_fn(p);
 p.Area_bottom_cyl = Area_bottom_cyl_fn(p);
+
+%% Model Parameters
+
+%%% Diffusion coefficients are defined below %%%
+p.I0 = 300;      % Light intensity at the surface [micro-mol photons m^-2 s^-1]
+p.kA = 0.0003;   % Specific light-attenuation coefficient of algal biomass [m^2 mg C^-1]
+p.kB = 0.0003;   % Specific light-attenuation coefficient of Benthic biomass [m^2 mg C^-1]
+p.kD = 0.00003;  % Specific light-attenuation coefficient of detritus [m^2 mg C^-1]
+p.kbg = 0.2;     % Background light-attenuation coefficient [m^-1]
+p.lbg_A =  0.08; % Specific algal maintenance respiration losses [day^-1]
+p.Ad = 0.02;     % algal death rate [day^-1]
+p.M = 1.5;       % Half-saturation constant of algal nutrient uptake [mg P m^-3]
+p.M_benth = 1.5; % Half-saturation constant of benthic algae nutrient uptake [mgPm^-3]
+p.Gmax = 1.08;   % Maximum specific phytoplankton production rate [day^-1]
+p.Gmax_benth = 1.08; % Maximum specific benthic algae production rate [day^-1]
+p.H = 120.0;         % Half-saturation constant of light-dependent algal production [micro-mol photons m^-2 s^-1]
+p.H_benth = 120.0;   % Half-saturation constant of light-dependent benthic algal production [micro-mol photons m^-2 s^-1]
+p.q = 0.0244;        % Algal nutrient quota, Redfield ratio [mgP/mgC]
+p.q_benth =  0.0244; % Benthic algae nutrient quota, Redfield ratio [mgP/mgC]
+p.lbg_benth = 0.1;   % Specific benthic algae maintenance respiration losses [day^-1]
+p.r = 0.02;          % Specific mineralization rate of sedimented nutrients [day^-1]
+p.vA = 0.1;          % Algal sinking speed [m day^-1]
+p.vD = 0.25;         % detritus sinking speed [m day^-1]
+p.Dbg = 0.02;        % remineralization of detritus in the water column [day^-1]
+p.resus = 0.2;       % resuspension rate of the detritus from the sediment. [day^-1]
+p.resus_Max = 0.02;  % Maximum resuspension rate of the detritus in the sediment [day^-1]
+p.resus_H = 8;       % half saturation constant of the resuspension rate functional response [m^2 day^-1]
+p.death_rate = 1;    % coefficient governing the proportion of sinking algae at the bottom that dies.
+% 0 = no death. 1 = all algae that would have sunk through the sediment dies.
+p.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
+% the rest is bound in particulate matter in the sediment.
+
+    p.resus_depth = ones(1,p.Xn-1); % Resuspension rate that varies with depth
+    max_resus = 0.2;
+    min_resus = 0.002;
+    i=(0:p.Xn-2);
+    p.resus_depth(i+1) = min_resus +  i*(max_resus- min_resus)/(p.Xn-2);
 
 %% Diffusion Coefficients
 dx = zeros(p.Zn-1,p.Xn-1); % Radial Turbulent-diffusion coefficient [m^2 day^-1]
@@ -168,9 +177,9 @@ p.I_matrix = I_matrix_fn(p);
 
 %% Inital Conditions
 
-A0  = 0*ones(p.Zn-1, p.Xn-1);    % Initial concentration of phytoplankton [mg C m^-3]
+A0  = 1*ones(p.Zn-1, p.Xn-1);    % Initial concentration of phytoplankton [mg C m^-3]
 Rd0 = 10*ones(p.Zn-1, p.Xn-1); % initial concentration of dissolved nutrients [mg P m^-3]
-D0  = 0.000*ones(p.Zn-1, p.Xn-1);  % initial concentration of detritus [mg P m^-3]
+D0  = 1.000*ones(p.Zn-1, p.Xn-1);  % initial concentration of detritus [mg P m^-3]
 Rs0 = 1*ones(1, p.Xn-1);         % initial concentration of sediment nutrient density [mg P m^-2]
 B0  = 1.00*ones(1, p.Xn-1);        % initial concentration of benthic algal density [mg C m^-2]
 %A0(1,:)= 1.0;
@@ -698,7 +707,7 @@ sed_points(:) = (p.X(1,2:end) + p.X(1,1:end-1))/2;
 
 font_size = 18;
 
-if(0) % set to false if no videos are desired.
+if(1) % set to false if no videos are desired.
     close all
     if(A_vid)   A_video = VideoWriter('plankton.avi');             open(A_video); end
     if(Rd_vid)  Rd_video = VideoWriter('dissolved_nutrients.avi'); open(Rd_video);end
@@ -709,7 +718,7 @@ if(0) % set to false if no videos are desired.
     if(all_vid) all_video = VideoWriter('everything.avi');         open(all_video); end
     if(B_growth_vid) B_growth_video = VideoWriter('benth_growth.avi');  open(B_growth_video); end
     
-    for t_index = 5000:50:(length(Y_t(:,1)))
+    for t_index = 1000:50:(length(Y_t(:,1)))
         % Extracting state variables
         if(A_vid)
             A = Y_t(t_index,1:(p.Xn-1)*(p.Zn-1));

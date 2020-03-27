@@ -8,7 +8,7 @@ function [output] = rhs_function_V4(t,Y,p)
 
 % Version 4 - detritus + variable diffusion coefficients.
 
-constant_resuspension = true; % variable resuspension not implemented yet.
+constant_resuspension = false; % variable resuspension not implemented yet.
 
 %% reformatting input
 % separating the state variables from y
