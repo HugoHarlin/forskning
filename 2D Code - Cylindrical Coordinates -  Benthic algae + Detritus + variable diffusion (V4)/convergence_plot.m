@@ -4,8 +4,9 @@ clc
 clear
 close all
 
-res_vec = [5:26,36,41]; %dx 10 dz 10
+%res_vec = [5:26,36,41]; %dx 10 dz 10
 %res_vec = [5:22,33]; % dx 100 dz 100
+res_vec = [16,19,23,26,31]; %,35]; % straatified kbg 0.8 therm depth 10 m
 
 num_res = length(res_vec);
 max_res = max(res_vec);
@@ -25,9 +26,11 @@ for i = 1:num_res % interating over the resolutions
     
     % declaring struct
     eval("p_" + num2str(res_vec(i)) + "= struct;");
-    
+        
     % loading data into struct
-    eval("p_" + num2str(res_vec(i)) + "= load(""2D_convergence_res_V4_Xn_" + num2str(res_vec(i)) + "_Zn_" + num2str(res_vec(i))+ """);");
+    % eval("p_" + num2str(res_vec(i)) + "=
+    % load(""2D_convergence_res_V4_Xn_" + num2str(res_vec(i)) + "_Zn_" + num2str(res_vec(i))+ """);"); 
+    eval("p_" + num2str(res_vec(i)) + "= load(""2D_benthic_results_V4_Xn_" + num2str(res_vec(i)) + "_Zn_" + num2str(res_vec(i))+ "_alpha_1_5_kbg_0_8_Stratified_therm_depth_10"");"); % stratified simulations
     
     % Extracting  algae, dissolved nutrients, and detritus concentrations
     eval(" A = p_" + num2str(res_vec(i)) + ".Y_t(end,(1:(p_" + num2str(res_vec(i)) + ".p.Xn-1)*(p_" + num2str(res_vec(i)) + ".p.Zn-1)));");

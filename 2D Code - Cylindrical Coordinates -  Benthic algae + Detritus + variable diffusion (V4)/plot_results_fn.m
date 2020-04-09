@@ -429,8 +429,14 @@ if(true)
         % set(gcf, 'Position',  [0, 0, 1200, 1000]) % if on laptop
         tile_fig =  tiledlayout(3,3,'TileSpacing','Compact');
         tile_fig.Padding = 'compact';
+        title_str = "";
         %title_str = "dx: " + num2str(p.dx(1,1)) + "  dz: " + num2str(p.dz(1,1)) + "  Xn: " + num2str(p.Xn) + "  Zn: " + num2str(p.Zn) + "  alpha: " + num2str(p.alpha) + "  kbg: " + num2str(p.kbg) + "";
-         title_str = "Stratified, Xn: " + num2str(p.Xn) + "  Zn: " + num2str(p.Zn) + "  alpha: " + num2str(p.alpha) + "  kbg: " + num2str(p.kbg) + "";
+        if(exist('p.stratified'))
+            if(p.stratified)
+                title_str = "Stratified, ";
+            end
+        end
+        title_str = title_str + "Xn: " + num2str(p.Xn) + "  Zn: " + num2str(p.Zn) + "  alpha: " + num2str(p.alpha) + "  kbg: " + num2str(p.kbg) + "";
         title(tile_fig,title_str,'FontSize', font_size + 12); % shared title for all plots
         x_aspect = 1.2;
         
@@ -677,7 +683,8 @@ if(true)
     %fig_name = "2D_benthic_results_V4_dx_" + num2str(p.dx(1,1)) + "_dz_" + num2str(p.dz(1,1)) + "_Xn_" + num2str(p.Xn) + "_Zn_" + num2str(p.Zn) + "_alpha_" + alpha_str + "_kbg_"+ kbg_str + "";
     %fig_name = "2D_benthic_results_V4_dx_" + num2str(p.dx(1,1)) + "_dz_" + num2str(p.dz(1,1)) + "_Xn_" + num2str(p.Xn) + "_Zn_" + num2str(p.Zn) + "_alpha_" + alpha_str + "_kbg_"+ kbg_str + "_resuspRate_" + resus_str + "";
     %fig_name = "2D_benthic_results_V4_dx_" +num2str(p.dx(1,1)) + "_dz_" + num2str(p.dz(1,1)) + "_Xn_" + num2str(p.Xn) + "_Zn_" + num2str(p.Zn) + "_alpha_" + alpha_str + "_kbg_"+ kbg_str +  "_reminrate_"+ remin_str ;
-     fig_name = "2D_benthic_results_V4_dx_" + "Xn_" + num2str(p.Xn) + "_Zn_" + num2str(p.Zn) + "_alpha_" + alpha_str + "_kbg_"+ kbg_str +  "_Stratified" ;
+     fig_name = "2D_benthic_results_V4_dx_" + "Xn_" + num2str(p.Xn) + "_Zn_" + num2str(p.Zn) + "_alpha_" + alpha_str + "_kbg_"+ kbg_str +"_therm_depth_10_therm_thickness_3";
+     
     saveas(gcf,fig_name,'jpg');
 end
 end

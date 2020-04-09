@@ -109,11 +109,12 @@ p.death_rate = 1;    % coefficient governing the proportion of sinking algae at 
 p.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
 % the rest is bound in particulate matter in the sediment.
 
-    p.resus_depth = ones(1,p.Xn-1); % Resuspension rate that varies with depth
-    max_resus = 0.2;
-    min_resus = 0.002;
-    i=(0:p.Xn-2);
-    p.resus_depth(i+1) = min_resus +  i*(max_resus- min_resus)/(p.Xn-2);
+p.constant_resuspension = false; % variable resuspension not implemented yet.
+p.resus_depth = ones(1,p.Xn-1); % Resuspension rate that varies with depth
+max_resus = 0.2;
+min_resus = 0.002;
+i=(0:p.Xn-2);
+p.resus_depth(i+1) = min_resus +  i*(max_resus- min_resus)/(p.Xn-2);
 
 %% Diffusion Coefficients
 dx = zeros(p.Zn-1,p.Xn-1); % Radial Turbulent-diffusion coefficient [m^2 day^-1]
@@ -147,14 +148,14 @@ p.dz = dz;
 %  p.dx(9,:) = 2;
 %  p.dx(10,:) = 1;
 
-% 
-% %%%%% manual setting of the diffusion coefficients, for a resolution of 20x20 cells %%%%% 
+%
+% %%%%% manual setting of the diffusion coefficients, for a resolution of 20x20 cells %%%%%
 % dx(1:5,:) = 100;
 % dx(6,:) = 2.5;
 % dx(7,:) = 1;
 % dx(8,:) = 2.5;
 % dx(9:end,:) = 10;
-% 
+%
 % p.dx = dx;
 % p.dz = dx;
 
@@ -673,24 +674,24 @@ if(true)
     
 end
 
-%% nutrient portions and leakage 
-    z_theory_algae = 1/p.kbg *log((p.I0*(p.Gmax/(p.lbg_A+p.Ad) -1))/p.H);
-    perc_algae = sum(sum(n_algae_end))/ntot_end;
-    perc_dissolved = sum(sum(n_dissolved_end))/ntot_end;
-    perc_detritus = sum(sum(n_detritus_end))/ntot_end;
-    perc_sediment = sum(n_sediment_end)/ntot_end;
-    perc_benthic = sum(n_benthic_end)/ntot_end;
-    [x,isterm,dir] = eventfun_V4(t(end),Y_t(end,:)',p);
-    
-    disp("Norm of the time derivatives at t_end (should be lower than set threshold): " + num2str(x));
-    disp("portion of leaked nutrients: " + num2str(abs((p.ntot_0-ntot_end) /p.ntot_0 )));
-    disp("leaked nutrients [mgP]: " + num2str(abs(p.ntot_0-ntot_end)));
-    disp("portion of nutrients in phytoplankton: " + num2str(perc_algae));
-    disp("portion of nutrients in dissolved nutrients: " + num2str(perc_dissolved));
-    disp("portion of nutrients in detritus: " + num2str(perc_detritus));
-    disp("portion of nutrients in sediment: " + num2str(perc_sediment));
-    disp("portion of nutrients in benthic algae: " + num2str(perc_benthic));
-    disp("____________________________________________________");
+%% nutrient portions and leakage
+z_theory_algae = 1/p.kbg *log((p.I0*(p.Gmax/(p.lbg_A+p.Ad) -1))/p.H);
+perc_algae = sum(sum(n_algae_end))/ntot_end;
+perc_dissolved = sum(sum(n_dissolved_end))/ntot_end;
+perc_detritus = sum(sum(n_detritus_end))/ntot_end;
+perc_sediment = sum(n_sediment_end)/ntot_end;
+perc_benthic = sum(n_benthic_end)/ntot_end;
+[x,isterm,dir] = eventfun_V4(0,Y_t(end,:)',p);
+
+disp("Norm of the time derivatives at t_end (should be lower than set threshold): " + num2str(x));
+disp("portion of leaked nutrients: " + num2str(abs((p.ntot_0-ntot_end) /p.ntot_0 )));
+disp("leaked nutrients [mgP]: " + num2str(abs(p.ntot_0-ntot_end)));
+disp("portion of nutrients in phytoplankton: " + num2str(perc_algae));
+disp("portion of nutrients in dissolved nutrients: " + num2str(perc_dissolved));
+disp("portion of nutrients in detritus: " + num2str(perc_detritus));
+disp("portion of nutrients in sediment: " + num2str(perc_sediment));
+disp("portion of nutrients in benthic algae: " + num2str(perc_benthic));
+disp("____________________________________________________");
 
 %% video of plankton dynamics
 A_vid  = 1; % flags for videos, set to true if desired.
@@ -699,7 +700,7 @@ Rs_vid = 1;
 B_vid = 1;
 D_vid  = 1;
 lim_vid = 1;
-B_growth_vid = 1;
+B_growth_vid = 0;
 all_vid = false;
 % creating points for sediment plot
 sed_points = zeros(1,p.Xn-1);
@@ -718,7 +719,10 @@ if(1) % set to false if no videos are desired.
     if(all_vid) all_video = VideoWriter('everything.avi');         open(all_video); end
     if(B_growth_vid) B_growth_video = VideoWriter('benth_growth.avi');  open(B_growth_video); end
     
-    for t_index = 1000:50:(length(Y_t(:,1)))
+    
+    for t_index = 1:100:(length(Y_t(:,1)))
+        t(t_index)
+        % t_index
         % Extracting state variables
         if(A_vid)
             A = Y_t(t_index,1:(p.Xn-1)*(p.Zn-1));
