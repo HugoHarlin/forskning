@@ -30,191 +30,195 @@ tic
 %% Loop over different turbidities
 parfor p = 1:3 %2:3 %1:2
     
-     for depth_var = 1:3 % looping over thermocline depth
-    % for x_res_index = [0,1]
-    %for therm_depth = [2,5,10,15]
-    kbg_index = p;
-    
-    tic
-    
-    %% all parameters are organized in a struct pp for implementation convenience
-    pp = struct;
-    
-    %% Lake topology and Mesh
-    % Quantities relating to system size
-    pp.Xn   = 21;  % Number of grid-points (width)
-    pp.Zn   = 21;  % Number of grid-points (depth)
-    pp.Lmin = 0.1; % Minimum lake depth (depth at land-water interface) [m]
-    pp.Lmax = 20;  % Maximum lake depth [m]
-    pp.W    = 20;  % Lake radius [m]
-    alpha_vec = [1, 1.5]; % slopes being looped over.
-    alpha_index = 2;
-    pp.alpha = alpha_vec(alpha_index);  % Exponent governing the slope of the lake bottom
-    
-    pp.stratified = 1; % if true, the lake diffusion coefficients are set so that the diffusion coefficient reflect a thermally stratified
-    if(pp.stratified)
-        pp.increased_x_res = 0;
-        pp.increased_z_res = 0;
-        % lake with an epilimnion at 5 meters, (3 meters wide transition)
-        depth_vec = [2, 5, 10, 15];
+    for depth_var = 1:3 % looping over thermocline depth
+        % for x_res_index = [0,1]
+        %for therm_depth = [2,5,10,15]
+        kbg_index = p;
         
-        pp.thermocline_depth = depth_vec(depth_var); % vertical depth at which the water transitions from a well mixed state, the upper boundary of the thermocline [m].
-        pp.thermocline_thickness = 3; % the thickness of the thermocline layer [m]
-        pp.diff_above_thermocline = 1000; % [day^-1]
-        pp.diff_in_thermocline = 1; % [day^-1]
-        pp.diff_below_thermocline = 10;   % [day^-1]
-    end
-    
-    % Lake Mesh, with an increasing depth from Lmin at the shore to Lmax
-    % at the center of the lake (slope = alpha* (Lmin - Lmax)/W).
-    % (0,0) is placed at the center of the lake at the surface, y-dim is facing
-    % downward and x-dim is facing towards the lake edge
-    
-    pp.X = zeros(pp.Zn, pp.Xn); % Mesh-spacing in x-dimension
-    pp.Z = zeros(pp.Zn, pp.Xn); % Mesh-spacing in y-dimension
-    
-    for ii=1:pp.Zn
-        pp.X(ii,:) = [0:pp.W/(pp.Xn-1):pp.W]; % even spacing of the grid in x-dimension
-    end
-    
-    % the grid is compressed in y-dimension, with depth Lmin at the
-    % shore and Lmax at the center of the lake.
-    for jj = 1:pp.Xn
-        for iii=1:pp.Zn
-            pp.Z(iii,jj) = (iii-1)*(pp.Lmax/(pp.Zn-1))*(1 + (pp.Lmin/pp.Lmax -1)* (pp.X(iii,jj)/pp.W).^(pp.alpha));
-        end
-    end
-    
-    % Here the grid is refined in the z-direction to increase resolution at
-    % the thermocline.
-    counter = 0; % counter is used when appending the new rows in the grid
-    
-    if(pp.stratified)
+        tic
         
-        if(pp.increased_z_res) % horizontal grid refinement (more rows) where the thermocline meets the bottom
-            jjjj = 1:pp.Xn;
-            for iiii = pp.thermocline_depth+1:  pp.thermocline_depth +  pp.thermocline_thickness +1
-                new_row_1 = (iiii-1+0.25)*(pp.Lmax/(pp.Zn-1))*(1 + (pp.Lmin/pp.Lmax -1)* (pp.X(iiii,jjjj)/pp.W).^(pp.alpha));
-                new_row_2 = (iiii-1+0.50)*(pp.Lmax/(pp.Zn-1))*(1 + (pp.Lmin/pp.Lmax -1)* (pp.X(iiii,jjjj)/pp.W).^(pp.alpha));
-                new_row_3 = (iiii-1+0.75)*(pp.Lmax/(pp.Zn-1))*(1 + (pp.Lmin/pp.Lmax -1)* (pp.X(iiii,jjjj)/pp.W).^(pp.alpha));
-                
-                pp.Z = [ pp.Z(1:iiii + counter,jjjj); new_row_1; new_row_2; new_row_3; pp.Z(((iiii+ counter+1):end),jjjj)];
-                counter = counter + 3; % three new rows are added.
-            end
+        %% all parameters are organized in a struct pp for implementation convenience
+        pp = struct;
+        
+        %% Lake topology and Mesh
+        % Quantities relating to system size
+        pp.Xn   = 21;  % Number of grid-points (width)
+        pp.Zn   = 21;  % Number of grid-points (depth)
+        pp.Lmin = 0.1; % Minimum lake depth (depth at land-water interface) [m]
+        pp.Lmax = 20;  % Maximum lake depth [m]
+        pp.W    = 20;  % Lake radius [m]
+        alpha_vec = [1, 1.5]; % slopes being looped over.
+        alpha_index = 2;
+        pp.alpha = alpha_vec(alpha_index);  % Exponent governing the slope of the lake bottom
+        
+        pp.stratified = 1; % if true, the lake diffusion coefficients are set so that the diffusion coefficient reflect a thermally stratified
+        if(pp.stratified)
+            pp.increased_x_res = 0;
+            pp.increased_z_res = 0;
+            % lake with an epilimnion at 5 meters, (3 meters wide transition)
+            depth_vec = [2, 5, 10, 15];
             
-            % adding rows to pp.X so that the dimensions don't differ.
-            pp.X = [pp.X; pp.X(1:3* (pp.thermocline_thickness+1),:)];
-            pp.Zn = pp.Zn + 3* (pp.thermocline_thickness+1); % updating the count of number of rows in our grid p.Zn
+            pp.thermocline_depth = depth_vec(depth_var); % vertical depth at which the water transitions from a well mixed state, the upper boundary of the thermocline [m].
+            pp.thermocline_thickness = 3; % the thickness of the thermocline layer [m]
+            pp.diff_above_thermocline = 1000; % [day^-1]
+            pp.diff_in_thermocline = 1; % [day^-1]
+            pp.diff_below_thermocline = 10;   % [day^-1]
         end
         
-        if(pp.increased_x_res) % horizontal grid refinement (more columns) where the thermocline meets the bottom.
-            x_strat_top = pp.W*((pp.thermocline_depth - pp.Lmax)/(pp.Lmin - pp.Lmax))^(1/pp.alpha); % this is the depth at which the top of the thermocline intersects with the bottom.
-            x_strat_bottom = pp.W*((pp.thermocline_depth + pp.thermocline_thickness - pp.Lmax)/(pp.Lmin - pp.Lmax))^(1/pp.alpha); % this is the depth at which the bottom of the thermocline intersects with the bottom.
-            x_strat_top = ceil(x_strat_top); % by rounding up to the nearest whole number, ensuring that the variable is compatible as an index and that we dont miss any grid refinement
-            x_strat_bottom = floor(x_strat_bottom); % where the thermocline is.
-            
-            
-            for ii=1:1:pp.Zn
-                pp.X(ii,:) = [0:pp.W/(pp.Xn-1):pp.W]; % even spacing of the grid in x-dimension
+        % Lake Mesh, with an increasing depth from Lmin at the shore to Lmax
+        % at the center of the lake (slope = alpha* (Lmin - Lmax)/W).
+        % (0,0) is placed at the center of the lake at the surface, y-dim is facing
+        % downward and x-dim is facing towards the lake edge
+        
+        pp.X = zeros(pp.Zn, pp.Xn); % Mesh-spacing in x-dimension
+        pp.Z = zeros(pp.Zn, pp.Xn); % Mesh-spacing in y-dimension
+        
+        for ii=1:pp.Zn
+            pp.X(ii,:) = [0:pp.W/(pp.Xn-1):pp.W]; % even spacing of the grid in x-dimension
+        end
+        
+        % the grid is compressed in y-dimension, with depth Lmin at the
+        % shore and Lmax at the center of the lake.
+        for jj = 1:pp.Xn
+            for iii=1:pp.Zn
+                pp.Z(iii,jj) = (iii-1)*(pp.Lmax/(pp.Zn-1))*(1 + (pp.Lmin/pp.Lmax -1)* (pp.X(iii,jj)/pp.W).^(pp.alpha));
             end
+        end
+        
+        % Here the grid is refined in the z-direction to increase resolution at
+        % the thermocline.
+        counter = 0; % counter is used when appending the new rows in the grid
+        
+        if(pp.stratified)
             
-            % the grid is compressed in y-dimension, with depth Lmin at the
-            % shore and Lmax at the center of the lake.
-            tt=1:pp.Zn;
-            
-            temp_index = x_strat_bottom +1 ; % index used for concatenating existing Z-matrix with new rows
-            
-            for j = x_strat_bottom:x_strat_top-1
-                %for j = [1]
-                num_new_columns = 1;
-                new_columns = zeros(pp.Zn,num_new_columns); % new columnds for pp.Z matrix
-                temp_X = zeros(pp.Zn,num_new_columns); % new colums for pp.X matrix
-                
-                for k = 1:num_new_columns
-                    new_columns(:,k) = (tt-1)'.*(pp.Lmax/(pp.Zn-1)).*(1 + (pp.Lmin/pp.Lmax -1).*((pp.X(tt, temp_index)+k/( num_new_columns +1) )/pp.W).^(pp.alpha));
-                    temp_X(:,k) = pp.X(tt,temp_index) + k/(num_new_columns+1);
+            if(pp.increased_z_res) % horizontal grid refinement (more rows) where the thermocline meets the bottom
+                jjjj = 1:pp.Xn;
+                for iiii = pp.thermocline_depth+1:  pp.thermocline_depth +  pp.thermocline_thickness +1
+                    new_row_1 = (iiii-1+0.25)*(pp.Lmax/(pp.Zn-1))*(1 + (pp.Lmin/pp.Lmax -1)* (pp.X(iiii,jjjj)/pp.W).^(pp.alpha));
+                    new_row_2 = (iiii-1+0.50)*(pp.Lmax/(pp.Zn-1))*(1 + (pp.Lmin/pp.Lmax -1)* (pp.X(iiii,jjjj)/pp.W).^(pp.alpha));
+                    new_row_3 = (iiii-1+0.75)*(pp.Lmax/(pp.Zn-1))*(1 + (pp.Lmin/pp.Lmax -1)* (pp.X(iiii,jjjj)/pp.W).^(pp.alpha));
+                    
+                    pp.Z = [ pp.Z(1:iiii + counter,jjjj); new_row_1; new_row_2; new_row_3; pp.Z(((iiii+ counter+1):end),jjjj)];
+                    counter = counter + 3; % three new rows are added.
                 end
                 
-                pp.X  = [pp.X(:,1:temp_index)  temp_X  pp.X(:,temp_index+1:end)];
-                
-                pp.Z = [pp.Z(:,1:temp_index) new_columns pp.Z(:,temp_index+1:end)]; % adding in the new columns in the Z-matrix
-                temp_index = temp_index +num_new_columns+1; % adjusting the index where the new rows are to be added.s
+                % adding rows to pp.X so that the dimensions don't differ.
+                pp.X = [pp.X; pp.X(1:3* (pp.thermocline_thickness+1),:)];
+                pp.Zn = pp.Zn + 3* (pp.thermocline_thickness+1); % updating the count of number of rows in our grid p.Zn
             end
             
-            pp.Xn = pp.Xn + num_new_columns* (j-x_strat_bottom+1);
+            if(pp.increased_x_res) % horizontal grid refinement (more columns) where the thermocline meets the bottom.
+                x_strat_top = pp.W*((pp.thermocline_depth - pp.Lmax)/(pp.Lmin - pp.Lmax))^(1/pp.alpha); % this is the depth at which the top of the thermocline intersects with the bottom.
+                x_strat_bottom = pp.W*((pp.thermocline_depth + pp.thermocline_thickness - pp.Lmax)/(pp.Lmin - pp.Lmax))^(1/pp.alpha); % this is the depth at which the bottom of the thermocline intersects with the bottom.
+                x_strat_top = ceil(x_strat_top); % by rounding up to the nearest whole number, ensuring that the variable is compatible as an index and that we dont miss any grid refinement
+                x_strat_bottom = floor(x_strat_bottom); % where the thermocline is.
+                
+                
+                for ii=1:1:pp.Zn
+                    pp.X(ii,:) = [0:pp.W/(pp.Xn-1):pp.W]; % even spacing of the grid in x-dimension
+                end
+                
+                % the grid is compressed in y-dimension, with depth Lmin at the
+                % shore and Lmax at the center of the lake.
+                tt=1:pp.Zn;
+                
+                temp_index = x_strat_bottom +1 ; % index used for concatenating existing Z-matrix with new rows
+                
+                for j = x_strat_bottom:x_strat_top-1
+                    %for j = [1]
+                    num_new_columns = 1;
+                    new_columns = zeros(pp.Zn,num_new_columns); % new columnds for pp.Z matrix
+                    temp_X = zeros(pp.Zn,num_new_columns); % new colums for pp.X matrix
+                    
+                    for k = 1:num_new_columns
+                        new_columns(:,k) = (tt-1)'.*(pp.Lmax/(pp.Zn-1)).*(1 + (pp.Lmin/pp.Lmax -1).*((pp.X(tt, temp_index)+k/( num_new_columns +1) )/pp.W).^(pp.alpha));
+                        temp_X(:,k) = pp.X(tt,temp_index) + k/(num_new_columns+1);
+                    end
+                    
+                    pp.X  = [pp.X(:,1:temp_index)  temp_X  pp.X(:,temp_index+1:end)];
+                    
+                    pp.Z = [pp.Z(:,1:temp_index) new_columns pp.Z(:,temp_index+1:end)]; % adding in the new columns in the Z-matrix
+                    temp_index = temp_index +num_new_columns+1; % adjusting the index where the new rows are to be added.s
+                end
+                
+                pp.Xn = pp.Xn + num_new_columns* (j-x_strat_bottom+1);
+            end
+            
         end
         
-    end
-    
-    
-    % coordinates of the center of each mesh quadrilateral
-    X_vol = zeros(pp.Zn-1, pp.Xn-1);
-    Z_vol = zeros(pp.Zn-1, pp.Xn-1);
-    
-    for j=1:pp.Xn-1
-        for ttt =1:pp.Zn-1
-            X_vol(ttt,j) = (pp.X(ttt,j) + pp.X(ttt+1,j) + pp.X(ttt,j+1) + pp.X(ttt+1,j+1) ) /4;
-            Z_vol(ttt,j) = (pp.Z(ttt,j) + pp.Z(ttt+1,j) + pp.Z(ttt,j+1) + pp.Z(ttt+1,j+1) ) /4;
+        
+        % coordinates of the center of each mesh quadrilateral
+        X_vol = zeros(pp.Zn-1, pp.Xn-1);
+        Z_vol = zeros(pp.Zn-1, pp.Xn-1);
+        
+        for j=1:pp.Xn-1
+            for ttt =1:pp.Zn-1
+                X_vol(ttt,j) = (pp.X(ttt,j) + pp.X(ttt+1,j) + pp.X(ttt,j+1) + pp.X(ttt+1,j+1) ) /4;
+                Z_vol(ttt,j) = (pp.Z(ttt,j) + pp.Z(ttt+1,j) + pp.Z(ttt,j+1) + pp.Z(ttt+1,j+1) ) /4;
+            end
         end
-    end
-    pp.X_vol = X_vol;
-    pp.Z_vol = Z_vol;
-    
-    pp.volumes_cyl = vol_areas_cyl_3d_fn(pp); % volumes of each grid cell in the bulk of the lake
-    pp.Area_bottom_cyl = Area_bottom_cyl_fn(pp); % area of each grid element on the bottom
-    
-    %% Model Parameters
-    
-    %%% Diffusion coefficients are defined below %%%
-    pp.I0 = 300;    % Light intensity at the surface [micro-mol photons m^-2 s^-1]
-    pp.kA = 0.0003; % Specific light-attenuation coefficient of algal biomass [m^2 mg C^-1]
-    pp.kD = 0.0003; % Specific light-attenuation coefficient of detritus [m^2 mg C^-1]
-    pp.kB = 0.00003; % Specific light-attenuation coefficient of Benthic biomass [m^2 mg C^-1]
-    %kgb_vec = [0 0.2 0.4 0.8 2.0];
-    kgb_vec = [0.2 0.8 2.0];
-    % kbg_index = 2;
-    pp.kbg = kgb_vec(kbg_index);  % Background light-attenuation coefficient [m^-1]
-    pp.lbg_A = 0.08; % Specific algal maintenance respiration losses [day^-1]
-    pp.Ad = 0.02;    % algal death rate [day^-1]
-    pp.M = 1.5;      % Half-saturation constant of algal nutrient uptake [mg P m^-3]
-    pp.M_benth = 1.5; % Half-saturation constant of benthic algae nutrient uptake [mgPm^-3]
-    pp.Gmax = 1.08;   % Maximum specific phytoplankton production rate [day^-1]
-    pp.Gmax_benth = 1.08; % Maximum specific benthic algae production rate [day^-1]
-    pp.H = 120.0;         % Half-saturation constant of light-dependent algal production [micro-mol photons m^-2 s^-1]
-    pp.H_benth = 120.0;   % Half-saturation constant of light-dependent benthic algal production [micro-mol photons m^-2 s^-1]
-    pp.q = 0.0244;        % Algal nutrient quota, Redfield ratio [mgP/mgC]
-    pp.q_benth =  0.0244; % Benthic algae nutrient quota, Redfield ratio [mgP/mgC]
-    pp.lbg_benth = 0.1;   % Specific benthic algae maintenance respiration losses [day^-1]
-    remin_vec = [0.01,0.02, 0.05, 0.1]; % 0.02 is used as default value
-    remin_index = 3;
-    pp.r = remin_vec(remin_index);  % Specific mineralization rate of sedimented nutrients [day^-1]
-    pp.vA = 0.1;          % Algal sinking speed [m day^-1]
-    pp.vD = 0.25;         % detritus sinking speed [m day^-1]
-    pp.Dbg = 0.02;        % remineralization of detritus in the water column [day^-1]
-    pp.resus_Max = 0.02;  % Maximum resuspension rate of the detritus in the sediment [day^-1]
-    pp.resus_H = 8;       % half saturation constant of the resuspension rate functional response [m^2 day^-1]
-    pp.death_rate = 1;    % coefficient governing the proportion of sinking algae at the bottom that dies.
-    % 0 = no death. 1 = all algae that would have sunk through the sediment dies.
-    pp.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
-    % the rest is bound in particulate matter in the sediment.
-    
-    resus_vec = [0, 0.1, 0.2]; % 0.2 is used as default value
-    resus_index = 3;
-    pp.resus = resus_vec(resus_index);  % resuspension rate of the detritus from the sediment. [day^-1]
-    
-    pp.resus_depth = ones(1,pp.Xn-1); % Resuspension rate that varies with depth
-    max_resus = 0.2;
-    min_resus = 0.002;
-    i=(0:pp.Xn-2);
-    pp.resus_depth(i+1) = min_resus +  i*(max_resus- min_resus)/(pp.Xn-2);
-    
-    %%% periodic mixing
-    pp.periodic_mixing = 1; %set to true if periodic mixing is desired
-    pp.mixing_frequency = 365; % time between each mixing event [days]
-    pp.max_sim_time = 1e+4; %10e+6; % upper bound of the total simulation time if steady state is not reached before then. [days]
-    
-    %% looping over the diffusion coefficients
-   % for diff_index = 1:3 %,1000]
+        pp.X_vol = X_vol;
+        pp.Z_vol = Z_vol;
+        
+        pp.volumes_cyl = vol_areas_cyl_3d_fn(pp); % volumes of each grid cell in the bulk of the lake
+        pp.Area_bottom_cyl = Area_bottom_cyl_fn(pp); % area of each grid element on the bottom
+        
+        %% Model Parameters
+        
+        %%% Diffusion coefficients are defined below %%%
+        pp.I0 = 300;    % Light intensity at the surface [micro-mol photons m^-2 s^-1]
+        pp.kA = 0.0003; % Specific light-attenuation coefficient of algal biomass [m^2 mg C^-1]
+        pp.kD = 0.0003; % Specific light-attenuation coefficient of detritus [m^2 mg C^-1]
+        pp.kB = 0.00003; % Specific light-attenuation coefficient of Benthic biomass [m^2 mg C^-1]
+        %kgb_vec = [0 0.2 0.4 0.8 2.0];
+        kgb_vec = [0.2 0.8 2.0];
+        % kbg_index = 2;
+        pp.kbg = kgb_vec(kbg_index);  % Background light-attenuation coefficient [m^-1]
+        pp.lbg_A = 0.08; % Specific algal maintenance respiration losses [day^-1]
+        pp.Ad = 0.02;    % algal death rate [day^-1]
+        pp.M = 1.5;      % Half-saturation constant of algal nutrient uptake [mg P m^-3]
+        pp.M_benth = 1.5; % Half-saturation constant of benthic algae nutrient uptake [mgPm^-3]
+        pp.Gmax = 1.08;   % Maximum specific phytoplankton production rate [day^-1]
+        pp.Gmax_benth = 1.08; % Maximum specific benthic algae production rate [day^-1]
+        pp.H = 120.0;         % Half-saturation constant of light-dependent algal production [micro-mol photons m^-2 s^-1]
+        pp.H_benth = 120.0;   % Half-saturation constant of light-dependent benthic algal production [micro-mol photons m^-2 s^-1]
+        pp.q = 0.0244;        % Algal nutrient quota, Redfield ratio [mgP/mgC]
+        pp.q_benth =  0.0244; % Benthic algae nutrient quota, Redfield ratio [mgP/mgC]
+        pp.lbg_benth = 0.1;   % Specific benthic algae maintenance respiration losses [day^-1]
+        remin_vec = [0.01,0.02, 0.05, 0.1]; % 0.02 is used as default value
+        remin_index = 3;
+        pp.r = remin_vec(remin_index);  % Specific mineralization rate of sedimented nutrients [day^-1]
+        pp.vA = 0.1;          % Algal sinking speed [m day^-1]
+        pp.vD = 0.25;         % detritus sinking speed [m day^-1]
+        pp.Dbg = 0.02;        % remineralization of detritus in the water column [day^-1]
+        pp.resus_Max = 0.02;  % Maximum resuspension rate of the detritus in the sediment [day^-1]
+        pp.resus_H = 8;       % half saturation constant of the resuspension rate functional response [m^2 day^-1]
+        pp.death_rate = 1;    % coefficient governing the proportion of sinking algae at the bottom that dies.
+        % 0 = no death. 1 = all algae that would have sunk through the sediment dies.
+        pp.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
+        % the rest is bound in particulate matter in the sediment.
+        
+        p.constant_resuspension = 1;
+        
+        if(p.constant_resuspension)
+            resus_vec = [0, 0.1, 0.2]; % 0.2 is used as default value
+            resus_index = 3;
+            pp.resus = resus_vec(resus_index);  % resuspension rate of the detritus from the sediment. [day^-1]
+            
+        else
+            pp.resus_depth = ones(1,pp.Xn-1); % Resuspension rate that varies with depth
+            max_resus = 0.2;
+            min_resus = 0.002;
+            i=(0:pp.Xn-2);
+            pp.resus_depth(i+1) = min_resus +  i*(max_resus- min_resus)/(pp.Xn-2);
+        end
+        %%% periodic mixing
+        pp.periodic_mixing = 1; %set to true if periodic mixing is desired
+        pp.mixing_frequency = 365; % time between each mixing event [days]
+        pp.max_sim_time = 1e+4; %10e+6; % upper bound of the total simulation time if steady state is not reached before then. [days]
+        
+        %% looping over the diffusion coefficients
+        % for diff_index = 1:3 %,1000]
         %for diff_max_z = [1,10,100] %,1000]
         
         %% Diffusion Coefficients
@@ -426,7 +430,7 @@ parfor p = 1:3 %2:3 %1:2
         parsave(file_name,pp,Y_t,t,simTime,y0);
         
         
-   % end
+        % end
     end
 end
 
