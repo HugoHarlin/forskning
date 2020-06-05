@@ -619,13 +619,48 @@ for i = 1:p.Zn-1 % eta
     end
 end
 
-%% division by element volume
+%% division by element area
  temp = p.volumes_cyl';
  temp2 = ones(3*(p.Xn-1)*(p.Zn-1) + 2*(p.Xn-1),1);
  temp2(1:length(temp(:))) = temp(:);
  temp2(length(temp(:))+1:2*length(temp(:)) ) = temp(:);
   temp2(2*length(temp(:))+1:3*length(temp(:)) ) = temp(:);
- S = S./temp2; 
- test = 1;
+ S = S./temp2;
+
+ %% Source terms
+ 
+%  
+%  for i = 1:p.Zn-1 % eta
+%     for j = 1:p.Xn-1 % xi
+%         
+%         x_A = j+(i-1)*(p.Xn-1); % phytoplankton x-index
+%         y_A = j+(i-1)*(p.Xn-1); % phytoplankton z-index
+%         x_Rd = j+(i-1)*(p.Xn-1) + (p.Xn-1)*(p.Zn-1); % dissolved nutrient x-index
+%         y_Rd = j+(i-1)*(p.Xn-1) + (p.Xn-1)*(p.Zn-1); % dissolved nutrient z-index
+%         x_D = j+(i-1)*(p.Xn-1) + 2*(p.Xn-1)*(p.Zn-1); % detritus x-index
+%         y_D = j+(i-1)*(p.Xn-1) + 2*(p.Xn-1)*(p.Zn-1); % detritus z-index
+%         
+%         % Algal growth and death [mgC/m^3]
+%         S(x_A,y_A) = S(x_A,y_A) + (G - p.lbg);
+%         
+%         % correspoding decrease in nutrients [mgP/m^3]
+%         S(x_Rd,y_Rd) = S(x_Rd,y_Rd) - p.q.*(G-p.lbg).*A;
+%         
+%         
+%     end
+%  end
+%  
+%  % Algae grow with net rate g - p.lbg, note that algae is measured in
+% % [mgC/m^3]
+% dAdt = dAdt + (G - p.lbg).*A;
+% 
+% 
+% 
+% % remineralization of detritus in the water column
+%  dDdt = dDdt - p.Dbg*D;
+%  dRdt = dRdt +  p.Dbg*D;
+
+ 
+ 
 end
 

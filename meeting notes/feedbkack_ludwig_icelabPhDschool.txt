@@ -1,0 +1,34 @@
+feedback från Ludwig
+
+- big picture saknas explicit
+
+- browning
+
+- de 2 primarproducenterna kom lite från ingenstans
+
+- varför just de två?
+
+- slide 5: 50% produktion som första eller andra punkt! (koppla till big picture)
+
+- rubrik slide 7 & 8 andra rubriker, utnyttja titeln bättre
+
+- slide 7: onödigt med dubbel information i bullets och i bilden 
+
+- kommentar: det var svårt att förstå mekanismera
+
+- mellanting mellan fullt ekvationssystem och enbart bild
+	tex. pil nedåt med vbar i slide 7
+
+- slide 12 introducera kbg innan explicit, introducera inte bara verbalt
+
+- vad kan 2010 och 2014 inte svara på? vad saknas fundamentalt i modellerna?
+- motivera att horisontell transport saknas 
+- motivera tydligare varför de kombineras och vad som min modell kan beskriva som 2010 och 2014 inte klarar av 
+
+- slide 13 ha inte med gammla punkter,
+ istället lägg till fundamental ny dynamik
+
+
+börja med huvudresultat och jobba bakåt för att åhörarna ska förstå resultaten
+
+- lite för mycket text i presentationen

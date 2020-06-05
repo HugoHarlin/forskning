@@ -1,0 +1,45 @@
+- undersök vars avvikelserna är störts i konvergensen ( ta ett kluster som avviker mycket)
+- hur stor andel av phytoplankon är i språngskitet? ovanför? under?
+- 
+
+---- fredag: 20 min per person ----
+- varför är phytoplankton intressant?
+- två typer av habitat - botten, bulken
+- konkurrenter, 
+- detritus? utan detritus misgynnas pelagiska alger
+- hänvisa till att det inte finns så mycket data om bentisk deep chlorophyll maximum
+- version 5 presentera lite resultat
+- berätta om deep chlorophyll maximum
+- kort presentera modellen
+- icke skiktade resultat
+
+- nämn språngskikt 
+
+- ska inte modellera en realistisk sjö, utan undersöka fundamentala processer och mekanisker som påverkar tillväxten
+
+- sedimentet varierar i tjocklek i riktig sjö ( pga resuspension etc.) remineraliseringen och bentiska alger påverkas i sin tur
+
+- modellen kan tjäna som en mental basmodell 
+
+- nämn systematiskt misgynning av pelagiska alger i v1-5
+
+- visa vad som händer när man har en sjö som har ett enda djup (kastrull-sjö) (jäger diehl 2014 figur t.ex.)
+
+- finns konsumenter som specialiserar sig på benthiska eler pelagisk, spelar stor roll vilka som finns mest
+
+- transportprocesser vertikalt och horisontellt
+
+- kastrull kontra varierande djup
+
+- slutet system, jäger diehl (2014) hade ett inflöde från botten
+
+- på sikt, utforska betydelsen av sjöegenskaper för phytoplankton  & bentisk tillväxt
+
+- använd modellen för att utforska om det finns olika kategorier av sjöar 
+
+
+________________________________________________________
+
+- säsongsvarians bör "trubba ner" peak i bentiska alger etc.
+DONE- räkna ut maximala bentiska biomassan som funktion a ljuset, plotta maximal biomassa som function av inkommande ljus.
+- 

@@ -1,0 +1,11 @@
+- uttryck eq i 3D 
+- anta rotationssymmetri
+- härled 2D eq.
+
+- möte med karl
+
+- konvergensplottar (biomassa i specifik del av sjön t. tex.)
+ plotta beräkningstid (eller upplösning) mot valfri storhet 
+
+
+Peter Anton matte-inst. kursassistent

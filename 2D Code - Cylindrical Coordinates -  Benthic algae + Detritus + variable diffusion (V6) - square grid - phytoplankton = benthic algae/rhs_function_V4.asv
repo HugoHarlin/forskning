@@ -24,6 +24,8 @@ A = A';
 Rd = Rd';
 D = D';
 
+
+
 %% Calculation of the light intensity at each grid element center
 A_temp = A';
 D_temp = D';
@@ -52,58 +54,53 @@ dBdt = zeros(1,p.Xn-1);
 i = p.Zn-1; % eta
 j = 1:p.Xn-1; % xi
 
-% Available light at the very bottom of the lake, at the center of the
-% bottom border of each cell. (previously the light at the center of
-% each bottom cell was used, but the light is attenuated a bit more
-% than that at the very bottom.)
-I_bottom = p.I(end,:).*exp(-( 0.5*(p.Z(end,1:end-1)+ p.Z(end,2:end)) - p.Z_vol(end,:)).*(p.kA.*A(end,:) + p.kD.*D(end,:) + p.kbg));
-
-
-% Bethic algae net growth
-nutrient_limited_growth =  p.Gmax_benth.*B(j)'.*(Rd(i,j)./(Rd(i,j)+p.M_benth));
-light_limited_growth = p.Gmax_benth./p.kB.*log((p.H_benth + I_bottom)./(p.H_benth + I_bottom.*exp(-p.kB.*B(j)')));
-
-dBdt(j) = dBdt(j) + min(nutrient_limited_growth, light_limited_growth) - p.lbg_benth*B(j)';
-
-% Nutrients in the sediment remineralize into the lake.
-dRsdt(j) =  dRsdt(j) - p.r.*Rs(j)';
-
-% Benthic Algae respire/die and a portion p.benth_recycling is bound in
-% particulate form and is introduced into the sediment. This is handled
-% after the division by the element area below.
-dRsdt(j) =  dRsdt(j) + (1-p.benth_recycling).*p.q_benth.*p.lbg_benth*B(j)';
-
-% Algae sinks into the sediment, dies and instantly becomes sedimented nutrients.
-dRsdt(j) =  dRsdt(j) + p.vA.*p.death_rate.*A(i,j).*p.q./p.Area_bottom_cyl(j).*2.*pi.*p.W./(p.Xn-1).*(j-0.5).*p.dX_dXi_preCalc(i,j,4);
-
-% Detritus sinks into the sediment, dies and instantly becomes sedimented  nutrients.
-dRsdt(j) =  dRsdt(j) + p.vD.*D(i,j)./p.Area_bottom_cyl(j).*2.*pi.*p.W./(p.Xn-1).*(j-0.5).*p.dX_dXi_preCalc(i,j,4);
-
-if(exist('p.constant_resuspension'))
+    % Available light at the very bottom of the lake, at the center of the
+    % bottom border of each cell. (previously the light at the center of
+    % each bottom cell was used, but the light is attenuated a bit more
+    % than that at the very bottom.)
+    I_bottom = p.I(end,:).*exp(-( 0.5*(p.Z(end,1:end-1)+ p.Z(end,2:end)) - p.Z_vol(end,:)).*(p.kA.*A(end,:) + p.kD.*D(end,:) + p.kbg));
+    
+    
+    % Bethic algae net growth  
+    nutrient_limited_growth =  p.Gmax_benth.*B(j)'.*(Rd(i,j)./(Rd(i,j)+p.M_benth));  
+    light_limited_growth = p.Gmax_benth./p.kB.*log((p.H_benth + I_bottom)./(p.H_benth + I_bottom.*exp(-p.kB.*B(j)')));
+    
+    dBdt(j) = dBdt(j) + min(nutrient_limited_growth, light_limited_growth) - p.lbg_benth*B(j)';
+    
+    % Nutrients in the sediment remineralize into the lake.
+    dRsdt(j) =  dRsdt(j) - p.r.*Rs(j)';
+    
+        % Benthic Algae respire/die and a portion p.benth_recycling is bound in
+    % particulate form and is introduced into the sediment. This is handled
+    % after the division by the element area below.
+    dRsdt(j) =  dRsdt(j) + (1-p.benth_recycling).*p.q_benth.*p.lbg_benth*B(j)';
+    
+    % Algae sinks into the sediment, dies and instantly becomes sedimented nutrients.
+    dRsdt(j) =  dRsdt(j) + p.vA.*p.death_rate.*A(i,j).*p.q./p.Area_bottom_cyl(j).*2.*pi.*p.W./(p.Xn-1).*(j-0.5).*p.dX_dXi_preCalc(i,j,4);
+    
+    % Detritus sinks into the sediment, dies and instantly becomes sedimented  nutrients.
+    dRsdt(j) =  dRsdt(j) + p.vD.*D(i,j)./p.Area_bottom_cyl(j).*2.*pi.*p.W./(p.Xn-1).*(j-0.5).*p.dX_dXi_preCalc(i,j,4);
+    
+    if(exists(p.constant_resuspe
     if(p.constant_resuspension) % if set to true, the resuspension rate is constant. Otherwise it is depth dependent
         % Detritus is resuspended into the water
         dRsdt(j) =  dRsdt(j) - p.resus.*Rs(j)';
         dDdt(i,j) = dDdt(i,j) +  p.resus.*Rs(j)'.*p.Area_bottom_cyl(j);
-    else % consant resuspension
+    else % depth dependent resuspension NOT IMPLEMENTED YET
         dRsdt(j) =  dRsdt(j) - p.resus_depth(j).*Rs(j)';
         dDdt(i,j) = dDdt(i,j) +  p.resus_depth(j).*Rs(j)'.*p.Area_bottom_cyl(j);
     end
-else % in older runs p.constant_resuspension doens't exist and the resuspension is constant.
-    % Detritus is resuspended into the water
-    dRsdt(j) =  dRsdt(j) - p.resus.*Rs(j)';
-    dDdt(i,j) = dDdt(i,j) +  p.resus.*Rs(j)'.*p.Area_bottom_cyl(j);
-end
 
-%%%%% net flux of dissolved nutrients into the lake from the sediment and consumption by the benthic algae   %%%%%%%%%%%%%%%%%%%%%%%
-
-nutrient_limited_flux =  p.q_benth.*B(j)'.*p.Gmax_benth.*(Rd(i,j)./(Rd(i,j)+p.M_benth)); % [mgP/ (m^2 day)]
-light_limited_flux = p.q_benth.*p.Gmax./p.kB*log((p.H_benth + I_bottom)./(p.H_benth +I_bottom.*exp(-p.kB.*B(j)'))); % [mgP/ (m^2 day)]
-
-benth_P_consumption = min(nutrient_limited_flux, light_limited_flux); %This is the total consumption of dissolved nutrients,
-net_flux = p.r.*Rs(j)' +  p.benth_recycling.*p.q_benth.*p.lbg_benth*B(j)' - benth_P_consumption;
-
-dRdt(i,j) =   dRdt(i,j) + net_flux.*p.Area_bottom_cyl(j); % the net flux here has the units [mg P/ (m^2 day)], and is multiplied by the area of the bttom segment to yield
-% a change [mg P/ day]. Division by the element volume yields the sought change in concentration.
+           %%%%% net flux of dissolved nutrients into the lake from the sediment and consumption by the benthic algae   %%%%%%%%%%%%%%%%%%%%%%%
+        
+        nutrient_limited_flux =  p.q_benth.*B(j)'.*p.Gmax_benth.*(Rd(i,j)./(Rd(i,j)+p.M_benth)); % [mgP/ (m^2 day)]
+        light_limited_flux = p.q_benth.*p.Gmax./p.kB*log((p.H_benth + I_bottom)./(p.H_benth +I_bottom.*exp(-p.kB.*B(j)'))); % [mgP/ (m^2 day)]
+        
+        benth_P_consumption = min(nutrient_limited_flux, light_limited_flux); %This is the total consumption of dissolved nutrients,
+        net_flux = p.r.*Rs(j)' +  p.benth_recycling.*p.q_benth.*p.lbg_benth*B(j)' - benth_P_consumption;
+        
+        dRdt(i,j) =   dRdt(i,j) + net_flux.*p.Area_bottom_cyl(j); % the net flux here has the units [mg P/ (m^2 day)], and is multiplied by the area of the bttom segment to yield
+        % a change [mg P/ day]. Division by the element volume yields the sought change in concentration.
 
 %% Division by element volume
 % This is only done for the diffusion and advection contributions.
@@ -118,7 +115,7 @@ dDdt = dDdt./p.volumes_cyl;
 dAdt = dAdt./p.volumes_cyl;
 dRdt = dRdt./p.volumes_cyl;
 
-%% Source terms
+%% Source terms (incorporated into the stiffness matrix)
 % Algae grow with net rate g - p.lbg - p.Ad, note that algae is measured in
 % [mgC/m^3]
 dAdt = dAdt + (G - (p.lbg_A + p.Ad)).*A;
@@ -140,11 +137,10 @@ dRdt = dRdt';
 dDdt = dDdt';
 output = [dAdt(:); dRdt(:); dDdt(:); dRsdt(:); dBdt(:)]; % The output is a column vector with the derivatives of the state variables at each grid point.
 
-% diffusion of algae, dissolved nutrients and ditritus, sinking of
-% algae and distritus.
-output = output + p.S*Y;
+    % diffusion of algae, dissolved nutrients and ditritus, sinking of
+    % algae and distritus.
+    output = output + p.S*Y;
 
-test = 1;
 end
 
 %% Support functions - These aren't used in the current version, but are left for readability of the numerical method.

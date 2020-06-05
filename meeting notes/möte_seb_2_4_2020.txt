@@ -1,0 +1,32 @@
+note möte seb 4/2-2020
+
+
+välblandad vattenpelare
+
+- input: phosphor, dissolved organic matter (innehåller organiskt phosphor, men mest kol)
+
+Tillståndsvariabler:
+ - finns bakterier (flexibel konsumption)
+ - finns phytoplankton
+ - finns mixotropha alger, en tredje odzare (funkar som phytoplankton, med tillägget att de har en val att äta bakterier eller photosyntes, parameter alpha)
+
+ resurser:
+
+ - mineraliskt phosfor
+ - dissolved organic matter 
+ - 
+
+
+ - bakterier och phytoplankton konkurrerar, men finns också en samexistens där phytoplankton
+   generar kol som bakterier vill åt
+
+
+R - phosphor
+T - löst organist material
+
+A - alger
+M - mixotrofa
+B - bakterier
+R - löst phosphor
+L - labile carbon (dött 
+T - terrestrial organic matter

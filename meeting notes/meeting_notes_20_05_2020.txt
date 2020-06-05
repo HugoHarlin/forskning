@@ -1,0 +1,26 @@
+Anteckningar möte 20/5/2020
+
+Inte exakt samma... - testa att sänka horisontell diff-koeff. istället för att göra sjön bredare - ger det exakt sammaresultat?
+
+- hur ser näringsflödet ut längs botten i språngskiktet?
+
+Done - plotta specifika produktionen som 2d plott med gränsen för skiftet näring/ljusbegränsning utmärkt
+
+- undersök om det finns någon tummregel för upplösning/meter för god noggranhet på simuleringarna
+
+- variera resuspensionen (10%, 5%, 1% t.ex.) jämför med tidigare värdet av 20%
+
+- implementera varierande resuspension som beror på diffusionskoefficienten
+
+- kör simuleringar i V6 med bredare sjöprofil (100, 300m), jämför med V5
+
+Done ---> ändra benth_recycling i V6 så att det matchar näringsförlusterna för pelagiska alger ( = 0.8) <---
+
+Done (kvar - producera plottar) - kör om kbg-strat svep för V6 med korrigerade förluster för bentiska alger
+
+~Done - reproducera befintliga plottar med korrigerade phytoplankton-värden (i mgP/m^3)
+
+
+
+Modelling lake primary production using the reaction-advection-diffusion equation.
+

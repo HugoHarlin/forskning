@@ -28,9 +28,9 @@ tic
 %parfor p = 1:3 % looping over diffusion coeff
 
 %% Loop over different turbidities
-parfor p = 1:3 %2:3 %1:2
+for p = 1 % :3 %2:3 %1:2
     
-    for depth_var = 1:3 % looping over thermocline depth
+    for depth_var = 1% :3 % looping over thermocline depth
         % for x_res_index = [0,1]
         %for therm_depth = [2,5,10,15]
         kbg_index = p;
@@ -42,16 +42,16 @@ parfor p = 1:3 %2:3 %1:2
         
         %% Lake topology and Mesh
         % Quantities relating to system size
-        pp.Xn   = 21;  % Number of grid-points (width)
-        pp.Zn   = 21;  % Number of grid-points (depth)
-        pp.Lmin = 0.1; % Minimum lake depth (depth at land-water interface) [m]
+        pp.Xn   = 15;  % Number of grid-points (width)
+        pp.Zn   = 15;  % Number of grid-points (depth)
+        pp.Lmin = 0.0001; % Minimum lake depth (depth at land-water interface) [m]
         pp.Lmax = 20;  % Maximum lake depth [m]
         pp.W    = 20;  % Lake radius [m]
         alpha_vec = [1, 1.5]; % slopes being looped over.
-        alpha_index = 2;
+        alpha_index = 1;
         pp.alpha = alpha_vec(alpha_index);  % Exponent governing the slope of the lake bottom
         
-        pp.stratified = 1; % if true, the lake diffusion coefficients are set so that the diffusion coefficient reflect a thermally stratified
+        pp.stratified = 0; % if true, the lake diffusion coefficients are set so that the diffusion coefficient reflect a thermally stratified
         if(pp.stratified)
             pp.increased_x_res = 0;
             pp.increased_z_res = 0;
@@ -169,11 +169,11 @@ parfor p = 1:3 %2:3 %1:2
         pp.I0 = 300;    % Light intensity at the surface [micro-mol photons m^-2 s^-1]
         pp.kA = 0.0003; % Specific light-attenuation coefficient of algal biomass [m^2 mg C^-1]
         pp.kD = 0.0003; % Specific light-attenuation coefficient of detritus [m^2 mg C^-1]
-        pp.kB = 0.00003; % Specific light-attenuation coefficient of Benthic biomass [m^2 mg C^-1]
+        pp.kB =  0.00003; % Specific light-attenuation coefficient of Benthic biomass [m^2 mg C^-1]
         %kgb_vec = [0 0.2 0.4 0.8 2.0];
-        kgb_vec = [0.2 0.8 2.0];
-        % kbg_index = 2;
-        pp.kbg = kgb_vec(kbg_index);  % Background light-attenuation coefficient [m^-1]
+        kgb_vec = [0 0.2 0.8 2.0];
+         kbg_index = 2;
+        pp.kbg =  kgb_vec(kbg_index);  % Background light-attenuation coefficient [m^-1]
         pp.lbg_A = 0.08; % Specific algal maintenance respiration losses [day^-1]
         pp.Ad = 0.02;    % algal death rate [day^-1]
         pp.M = 1.5;      % Half-saturation constant of algal nutrient uptake [mg P m^-3]
@@ -185,8 +185,8 @@ parfor p = 1:3 %2:3 %1:2
         pp.q = 0.0244;        % Algal nutrient quota, Redfield ratio [mgP/mgC]
         pp.q_benth =  0.0244; % Benthic algae nutrient quota, Redfield ratio [mgP/mgC]
         pp.lbg_benth = 0.1;   % Specific benthic algae maintenance respiration losses [day^-1]
-        remin_vec = [0.01,0.02, 0.05, 0.1]; % 0.02 is used as default value
-        remin_index = 3;
+        remin_vec = [0, 0.01,0.02, 0.05, 0.1]; % 0.02 is used as default value
+        remin_index = 2;
         pp.r = remin_vec(remin_index);  % Specific mineralization rate of sedimented nutrients [day^-1]
         pp.vA = 0.1;          % Algal sinking speed [m day^-1]
         pp.vD = 0.25;         % detritus sinking speed [m day^-1]
@@ -198,11 +198,11 @@ parfor p = 1:3 %2:3 %1:2
         pp.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
         % the rest is bound in particulate matter in the sediment.
         
-        p.constant_resuspension = 1;
+        pp.constant_resuspension = 1;
         
-        if(p.constant_resuspension)
+        if(pp.constant_resuspension)
             resus_vec = [0, 0.1, 0.2]; % 0.2 is used as default value
-            resus_index = 3;
+            resus_index = 2;
             pp.resus = resus_vec(resus_index);  % resuspension rate of the detritus from the sediment. [day^-1]
             
         else
@@ -213,7 +213,7 @@ parfor p = 1:3 %2:3 %1:2
             pp.resus_depth(i+1) = min_resus +  i*(max_resus- min_resus)/(pp.Xn-2);
         end
         %%% periodic mixing
-        pp.periodic_mixing = 1; %set to true if periodic mixing is desired
+        pp.periodic_mixing = 0; %set to true if periodic mixing is desired
         pp.mixing_frequency = 365; % time between each mixing event [days]
         pp.max_sim_time = 1e+4; %10e+6; % upper bound of the total simulation time if steady state is not reached before then. [days]
         
@@ -226,9 +226,10 @@ parfor p = 1:3 %2:3 %1:2
         dz = zeros(pp.Zn-1,pp.Xn-1); % Vertical Turbulent-diffusion coefficient [m^2 day^-1]
         
         if(~pp.stratified)
-            diff_vec =[1,10,100];
-            %diff_max_x =diff_vec(p);
-            diff_max_x = diff_vec(diff_index); % horizontal diffusion coefficient at the surface
+            diff_vec =[0,1,10,100];
+            diff_max_x =diff_vec(2);
+           % diff_max_x = diff_vec(diff_index); % horizontal diffusion coefficient at the surface
+           % diff_max_x = 0;
             %diff_max_z = 10; % vertical diffusion coefficient at the surface
             diff_min_x = diff_max_x; % horizontal diffusion coefficient at the bottom
             diff_min_z = diff_max_x; % vertical diffusion coefficient at the bottom
@@ -292,11 +293,12 @@ parfor p = 1:3 %2:3 %1:2
         
         %% Inital Conditions
         A0  = 1.0*ones(pp.Zn-1, pp.Xn-1);    % Initial Algal carbon density [mg C m^-3]
-        Rd0 = 10.000*ones(pp.Zn-1, pp.Xn-1);  % initial concentration of dissolved nutrients [mg P m^-3]
+        Rd0 = 10*ones(pp.Zn-1, pp.Xn-1);  % initial concentration of dissolved nutrients [mg P m^-3]
         D0  = 1.000*ones(pp.Zn-1, pp.Xn-1);  % initial concentration of detritus [mg P m^-3]
         Rs0 = 1.0*ones(1, pp.Xn-1);        % initial concentration of sediment nutrient density [mg P m^-2]
         B0  = 1.00*ones(1, pp.Xn-1);        % initial concentration of benthic algal density [mg C m^-2]
         
+       % A0(end,:) = 1;
         %% calculation of total nutrient content at t=0, (to be conserved)
         n_algae_0 = pp.volumes_cyl.*A0*pp.q;
         n_dissolved_0 = pp.volumes_cyl.*Rd0;
@@ -394,11 +396,9 @@ parfor p = 1:3 %2:3 %1:2
             t = time_total;
             
         end
-        
-        
-        
+          
         %% recording of simulation time & saving workspace
-        simTime = toc;
+        pp.simTime = toc;
         alpha_str = ["1_0","1_5"];
         resus_str = ["0_0", "0_1","0_2"];
         kbg_str = ["0_2", "0_8", "2_0"];

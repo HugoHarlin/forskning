@@ -1,0 +1,42 @@
+Anteckningar möte 14/5/2020
+
+- välj ut plottar ur parametersvep som visar bentiska peaks över och under språngskiftet, kör om dessa med hög 
+upplösning för att undersöka vart exakt peaken ligger. 
+
+- Testa med en faktor 10/100 bredare sjö, vad händer? gynnas phytoplankton? Sjöprofilen just nu är aningen orealistisk med tanke på hur djup den är i förhållande till bredden.
+
+- kör simuleringar med samma diffusionskoefficient i språngskiktet som under, jämför med tidigare simuleringar.
+
+- testa med högre kbg, säg kbg = 5. vad händer?
+_____________________________________________
+diskussion om modellen:
+
+deep chlorophyll maximum i bentiska lagret verkar vara ett robust fenomen. Ett spår är att utgå från den enkla modellen och kartlägga 
+fenomentet där, för att sen lägga på mer realism och se om det påverkar dcm.
+
+- möjliga tillägg för att öka realismen är periodisk omblandning, periodiskt ljus, resuspension som beror på de lokala diffusionskoefficienterna.
+
+angående periodisk omblandning, testa att använda jämvikten från icke-omblandning som initial condition till modellen med oblandning.
+skiljer sig detta från steady state med vanliga initalvillkoren?
+
+______________________________________________
+
+
+--> Ny version av modellen (V6). phytoplankton = bentiska alger, när phytoplankton sjunker ner i botten blir de bentiska alger
+istället för att dö som i tidigare versioner. Testa med och utan resuspension av bentiska alger. 
+
+Detta är en kandidat för nya "standardmodellen", då vi bland annat slipper antagandet att phytoplankton dör så fort de nuddar botten
+och modellen som helhet känns mer naturlig i sina antaganden (kör redan med identiska tillväxtparameterar och stökiometri för bentiska och pelagiska alger
+så steget är inte så långt att säga att de är en och samma art).
+
+
+______________________________________________
+
+Till nästa möte:
+
+Done - producera kompletterande plottar till V5. (språngskikt, högre kbg (done), högre res (done), bredare sjö (Done), etc.)
+Done - implementera V6 och jämför med V5. 
+- Implementera omblandning i V5/V6 och skriv kod för att ta hand om eventuella periodiska resultat.
+- implementera "nyckeltal" som diskuterades i förra mötet.
+Done - implementera plott av näring/ljusbegränsning för bentiska alger
+Done - implementera om beräkningen av ljuset

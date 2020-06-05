@@ -1,5 +1,5 @@
 
-function [] = plot_results_fn(t,Y_t,p)
+function [] = plot_results_fn_V4(t,Y_t,p)
 % plots simulation results in one figure and saves them as a jpg.
 
 %% Extracting results
@@ -448,12 +448,13 @@ if(true)
         grid_data_A = griddata(p.X_vol,p.Z_vol, p.q.*A,X_vol_new,Y_vol_new, 'v4'); % interpolates to refined grid.
         nexttile
         surf(X_vol_new,Y_vol_new,grid_data_A ,  'edgecolor','none') % cell
-        caxis([0 inf]);
+        caxis([0 3.3]);
         shading interp
         grid off
         az =0;
         el = 90;
         view(az,el);
+        
         set(gca, 'Ydir', 'reverse')
         title("Phytoplankton [mgP/m^3]");
         ylabel("Depth [m]");

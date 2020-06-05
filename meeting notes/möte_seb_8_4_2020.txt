@@ -1,0 +1,20 @@
+språngskikt 
+- varierar i djup
+- kan snedvridas av vind
+- varierande ljus (flyttar runt maxdjupet för överlevnad)
+
+- tummregel från epirisk odzning: euphoric depth. djupet där 1% av inkommande djup finns kvar.
+  där är photosyntes så pass liten att de inte överlever
+
+ - specifik produktion plot
+ - beräkna flux och plotta flödena
+
+ - 15 meter språngskikt
+ - kör med högre upplösning, händer latjo grejer
+ - implementera kvadratiskt gridd med rak botten
+
+ - kör omblandning med jämvikt som utgångspunkt istället för vanliga initialvillkor
+ - är sluttillståndet en attraktor?
+ - ta några snapshots av en årscykel, jämför med stratified utan omblandning
+
+ - konvergensplott där enbart toleransen ändras
