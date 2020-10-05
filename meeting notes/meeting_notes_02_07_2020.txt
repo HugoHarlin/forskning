@@ -1,0 +1,43 @@
+Pre-meeting observations:
+
+ - Total lake primary production not dependent on pelagic/benthic ratio, only total biomass
+
+ - light variation dampens peaks as expected. 
+
+_____________________________________________________________
+
+- simulera och plotta årsmedelvärde (annual average)
+	sesonal varians med samma snitt som konstanta simuleringar
+	kör 20-400 med sesonal varians, (kör 210 på konstanta simuleringen) 
+
+- resultaten blir ofta orealistiska, fastna inte enbart vid de orealistiska resultaten
+	fundamental genomgång av de principer vi modellerat och deras impact på resultaten
+
+- komvergenssimulering (konstanta modellen)
+
+- bentiska alger får sig en rejäl smäll på vintern i sesonala modellen med ljus
+	om ljuset på vintern
+
+- skicka sammanställning powerpoint till sebastian 
+    - lägg till vår sommar höst vinter plottar för enbart thermocline-variation
+
+ - i verkligheten har man oftast en 'spring bloom' för pelagiska alger, med en peak i biomassa på våren
+
+- plot average standing stock of dissolved nutrients, phytoplankton, and benthic algae over a year for seasonal variation
+	(in nutrients)'
+
+
+- stabilt språngskikt från vår till sommar,
+	sen nergång från höst till vinter
+
+- språngskiktets djup är störst på vintern! tvärtom mot de simuleringar jag gjort hittils alltså.
+-
+
+- resuspension av bentiska alger på hårdbotten är mycket lägre än på mjukbotten, diskuterade resuspension beroende av sedimentmängden
+	 (under ettt visst värde har vi hårdbotten till exempel.)
+
+- vår sommar relativt samma djup, djupare våren djupast på vintern. En månad omblandning vintern
+   - 2 meter sommar/vår. börjar sjunka i september. linjärt till komplett omblandning
+
+ - 30 - 60 omblandning vinter dag 61 språngskikt. 240 börjar omblandning, linjärt till dag 30 året därpå
+  - under omblandningen dag 30-60 har vi hög diff i hela sjön

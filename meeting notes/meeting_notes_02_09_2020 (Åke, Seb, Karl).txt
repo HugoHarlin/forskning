@@ -1,0 +1,13 @@
+förslag på tillägg för att råda bot på 'resuspensionsproblemet':
+
+	- liten transport i bottenlagret (diffusion, convektion)
+	- ta bort mittendelen av språngskiktet (ingen region med mycket liten resus)
+
+
+testa drastiskt annorlunda initial conditions, mycket större andel av näringen i alger t.ex.
+
+kika på håkansson vad som är rimligt värde på resuspensionen
+
+En idé är att ge språngskiktet ett undantag från låg resus pga. seiches rörelse blandar om där (sätt manuell resus i språngskikt)
+
+

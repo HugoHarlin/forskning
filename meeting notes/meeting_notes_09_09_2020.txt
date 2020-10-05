@@ -1,0 +1,39 @@
+- kika på transient dynamik för alt initialvillkor, dominerar pelagiska alger initiellt?
+
+- resuspension accumulationsbotten Håkansson
+
+______________________________________________________________________
+- undersök låga värden på resuspensionen, tröskel?
+   . testa lägre resus, t.ex. 0.025. sensitivity analysis resuspensionen
+______________________________________________________________________
+
+
+- nytt nyckeltal: är bentiska alger eller pelagiska source/sink? 
+
+- räkna ut produktion/ytarea, bentiska/pelagiska separat och ihop
+
+- specific growth plot: sätt undre y-lim till noll
+
+- kör samma sweep som redan är gjort för kbg men kör en grundare sjö, 2,5,10 m
+   bentiska alger missgynnas av en djupare sjö. Men pelagiska alger borde gynnas initiellt av grumligare vatten?
+
+- kör horisontal diffusion-svep med max-djup 5, 80m
+
+- kör enbart vertical omblandning med djupare sjö
+
+- variera totala näringsmängden,testa 5-10X mer näring totalt
+    . testa merparten av näringen i bentiska alger/sediment
+    . alternativa tillstånd?
+
+- testa att ta bort 'mitten' av språngskiktet som åke föreslog. testa 100-1, 100-10
+
+- testa ett tjockare språngskikt med 100-1-10 profilen, t.ex. 5-6 meter tjockt
+    . var i språngskiktet byggs biomassa upp? är det i kanterna? övre? undre? båda?
+
+- seasonalitet: plotta värden från midssommar (relevant vid jämförelse med mätdata) 
+        . årssnitt relevant för årsproduktion
+
+- nytt nyckeltal: pelagisk specific growth över hela sjön
+
+
+   

@@ -656,6 +656,10 @@ if(true)
         str  = append(str ,'portion of nutrients in sediment:                ', num2str(perc_sediment), ' \n ');
         str  = append(str ,'portion of nutrients in benthic algae:         ', num2str(perc_benthic));
         textbox = annotation('textbox',dim,'String',sprintf(str),'FitBoxToText','on','EdgeColor','none');
+        
+        
+        
+        
         textbox.FontSize = font_size-4;
     end
     

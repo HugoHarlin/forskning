@@ -42,8 +42,8 @@ for p = 1 % :3 %2:3 %1:2
         
         %% Lake topology and Mesh
         % Quantities relating to system size
-        pp.Xn   = 15;  % Number of grid-points (width)
-        pp.Zn   = 15;  % Number of grid-points (depth)
+        pp.Xn   = 21;  % Number of grid-points (width)
+        pp.Zn   = 21;  % Number of grid-points (depth)
         pp.Lmin = 0.0001; % Minimum lake depth (depth at land-water interface) [m]
         pp.Lmax = 20;  % Maximum lake depth [m]
         pp.W    = 20;  % Lake radius [m]
@@ -195,7 +195,7 @@ for p = 1 % :3 %2:3 %1:2
         pp.resus_H = 8;       % half saturation constant of the resuspension rate functional response [m^2 day^-1]
         pp.death_rate = 1;    % coefficient governing the proportion of sinking algae at the bottom that dies.
         % 0 = no death. 1 = all algae that would have sunk through the sediment dies.
-        pp.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
+        pp.benth_recycling = 0.8; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
         % the rest is bound in particulate matter in the sediment.
         
         pp.constant_resuspension = 1;
@@ -227,7 +227,7 @@ for p = 1 % :3 %2:3 %1:2
         
         if(~pp.stratified)
             diff_vec =[0,1,10,100];
-            diff_max_x =diff_vec(2);
+            diff_max_x =diff_vec(3);
            % diff_max_x = diff_vec(diff_index); % horizontal diffusion coefficient at the surface
            % diff_max_x = 0;
             %diff_max_z = 10; % vertical diffusion coefficient at the surface
@@ -427,7 +427,7 @@ for p = 1 % :3 %2:3 %1:2
             file_name = "2D_benthic_results_V4_dx_" + num2str(diff_max_x) + "_dz_" + num2str(diff_max_z) + "_Xn_" + num2str(pp.Xn) + "_Zn_" + num2str(pp.Zn) + "_alpha_" + alpha_str(alpha_index) + "_kbg_"+ kbg_str(kbg_index) +  "_linearly_receding_resusp";
         end
         
-        parsave(file_name,pp,Y_t,t,simTime,y0);
+        parsave(file_name,pp,Y_t,t,pp.simTime,y0);
         
         
         % end

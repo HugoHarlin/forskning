@@ -8,6 +8,7 @@ function [output] = rhs_function_V4(t,Y,p)
 
 % Version 4 - detritus + variable diffusion coefficients.
 
+t
 
 %% reformatting input
 % separating the state variables from y
@@ -28,7 +29,7 @@ D = D';
 A_temp = A';
 D_temp = D';
 Z_vol_temp = p.Z_vol';
-I_alt = p.I0 .* exp(-p.I_matrix*(p.kA.*A_temp(:) + p.kD.*D_temp(:)) - p.kbg.*Z_vol_temp(:));
+I_alt = p.I0 .* exp(-p.I_matrix*(p.kA.*A_temp(:) + (1/p.q)*p.kD.*D_temp(:)) - p.kbg.*Z_vol_temp(:));
 I = reshape(I_alt,[(p.Xn-1) (p.Zn-1)])';
 p.I = I;
 
@@ -69,17 +70,17 @@ dBdt(j) = dBdt(j) + min(nutrient_limited_growth, light_limited_growth) - p.lbg_b
 dRsdt(j) =  dRsdt(j) - p.r.*Rs(j)';
 
 % Benthic Algae respire/die and a portion p.benth_recycling is bound in
-% particulate form and is introduced into the sediment. This is handled
-% after the division by the element area below.
+% particulate form and is introduced into the sediment. 
 dRsdt(j) =  dRsdt(j) + (1-p.benth_recycling).*p.q_benth.*p.lbg_benth*B(j)';
 
 % Algae sinks into the sediment, dies and instantly becomes sedimented nutrients.
 dRsdt(j) =  dRsdt(j) + p.vA.*p.death_rate.*A(i,j).*p.q./p.Area_bottom_cyl(j).*2.*pi.*p.W./(p.Xn-1).*(j-0.5).*p.dX_dXi_preCalc(i,j,4);
 
-% Detritus sinks into the sediment, dies and instantly becomes sedimented  nutrients.
+% Detritus sinks into the sediment and becomes sedimented nutrients
 dRsdt(j) =  dRsdt(j) + p.vD.*D(i,j)./p.Area_bottom_cyl(j).*2.*pi.*p.W./(p.Xn-1).*(j-0.5).*p.dX_dXi_preCalc(i,j,4);
 
-if(exist('p.constant_resuspension'))
+
+if(isfield(p, 'constant_resuspension'))
     if(p.constant_resuspension) % if set to true, the resuspension rate is constant. Otherwise it is depth dependent
         % Detritus is resuspended into the water
         dRsdt(j) =  dRsdt(j) - p.resus.*Rs(j)';

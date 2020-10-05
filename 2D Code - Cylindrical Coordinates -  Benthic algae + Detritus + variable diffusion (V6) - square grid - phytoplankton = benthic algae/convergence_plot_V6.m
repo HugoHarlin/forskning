@@ -4,8 +4,20 @@ clc
 clear
 close all
 
+% flags for choosing which parameter setup to plot
+strafified_fixed_resus = 0;
+strafified_fixed_resus_500m_radius = 1;
+stratified_variable_resus_type_3_width_500 = 0;
+stratified_variable_resus_type_1 = 0;
+stratified_variable_resus_type_2 = 0;
 
-res_vec  = (12:2:34); % stratified, kbg = 0.2
+folder = 'C:\Users\huha0015\Documents\PhD\Results V6\conv sim';
+addpath(genpath(folder));
+addpath('C:\Users\huha0015\Documents\PhD\Results V6\conv sim\conv sim variable resus\linear response function (type 2)');
+addpath('C:\Users\huha0015\Documents\PhD\Results V6\conv sim\conv sim variable resus\quadratic response function (type 1)');
+addpath('C:\Users\huha0015\Documents\PhD\Results V6\conv sim\conv sim fixed resus');
+res_vec  = (10:4:58); % stratified, kbg = 0.2
+%res_vec  = (12:2:34); % stratified, kbg = 0.2
 
 num_res = length(res_vec);
 max_res = max(res_vec);
@@ -28,7 +40,25 @@ ntot_vec = zeros(1,length(res_vec));
 x_vol_vec_max = zeros(1,sum(1:max_res-1));
 z_vol_vec_max = zeros(1,sum(1:max_res-1));
 
-eval("temp = load(""2D_benthic_results_V6_alpha_1_kbg_0_2_res_" +num2str(max_res) +"_Stratified_therm_depth_2_thickness_3_profile_100_1_10_CONV_SIM"");"); % stratified simulations
+% load the highest resolution simulation into struct temp
+
+if(strafified_fixed_resus)
+    eval("temp = load(""2D_benthic_results_V6_alpha_1_kbg_0_2_res_" + num2str(max_res) +"_Stratified_therm_depth_2_thickness_3_profile_100_1_10_CONV_SIM"");"); % stratified simulations
+end
+
+if(stratified_variable_resus_type_1)
+    eval("temp = load(""2D_benthic_results_V6_alpha_1_kbg_0_2_res_" + num2str(max_res) +"_Stratified_therm_depth_5_thickness_3_profile_100_1_10_variable_resus_resp_fn_1_CONVSIM"");"); % stratified simulations, variable resus
+end
+
+if(stratified_variable_resus_type_2)
+    eval("temp = load(""2D_benthic_results_V6_alpha_1_kbg_0_2_res_" + num2str(max_res) +"_Stratified_therm_depth_5_thickness_3_profile_100_1_10_variable_resus_resp_fn_2_CONVSIM"");"); % stratified simulations, variable resus type 2
+end
+
+if(strafified_fixed_resus_500m_radius)
+    eval("temp = load(""2D_benthic_results_V6_alpha_1_kbg_0_6_res_" + num2str(max_res) +"_dx_10_dz_10_resus_rate_0_05_width_500_depth_20_CONVSIM"");"); % non stratified, fixed resus 0.05 width 500m
+end
+
+
 p = temp.p;
 
 index = 1;
@@ -47,21 +77,41 @@ end
 
 for i = 1:num_res % interating over the resolutions
     
-    
-    
     % declaring struct
     eval("p_" + num2str(res_vec(i)) + "= struct;");
     
     
+    
     % loading data into struct
-    % eval("p_" + num2str(res_vec(i)) + "=
-    % load(""2D_convergence_res_V4_Xn_" + num2str(res_vec(i)) + "_Zn_" + num2str(res_vec(i))+ """);");
-    eval("p_" + num2str(res_vec(i)) + "= load(""2D_benthic_results_V6_alpha_1_kbg_0_2_res_" +num2str(res_vec(i)) +"_Stratified_therm_depth_2_thickness_3_profile_100_1_10_CONV_SIM"");"); % stratified simulations
+    if(strafified_fixed_resus)
+        eval("p_" + num2str(res_vec(i)) + "= load(""2D_benthic_results_V6_alpha_1_kbg_0_2_res_" + num2str(res_vec(i)) +"_Stratified_therm_depth_2_thickness_3_profile_100_1_10_CONV_SIM"");"); % stratified simulations
+    end
+    
+    if(strafified_fixed_resus_500m_radius)
+        eval("p_" + num2str(res_vec(i)) + "= load(""2D_benthic_results_V6_alpha_1_kbg_0_6_res_" + num2str(res_vec(i)) +"_dx_10_dz_10_resus_rate_0_05_width_500_depth_20_CONVSIM"");"); % non stratified, fixed resus 0.05 width 500m
+    end
+    
+    if(stratified_variable_resus_type_1)
+        eval("p_" + num2str(res_vec(i)) + "= load(""2D_benthic_results_V6_alpha_1_kbg_0_2_res_" + num2str(res_vec(i)) +"_Stratified_therm_depth_5_thickness_3_profile_100_1_10_variable_resus_resp_fn_1_CONVSIM"");"); % stratified simulations, variable resus type 1
+    end
+    
+%     
+%     if(stratified_variable_resus_type_2)
+%         eval("p_" + num2str(res_vec(i)) + "= load(""2D_benthic_results_V6_alpha_1_kbg_0_2_res_" + num2str(res_vec(i)) +"_Stratified_therm_depth_5_thickness_3_profile_100_1_10_variable_resus_resp_fn_2_CONVSIM"");"); % stratified simulations, variable resus type 2
+%     end
+    
+    if(stratified_variable_resus_type_3_width_500)
+        eval("p_" + num2str(res_vec(i)) + "= load(""2D_benthic_results_V6_alpha_1_kbg_0_6_res_" + num2str(res_vec(i)) +"_Stratified_therm_depth_5_thickness_3_profile_100_1_10_variable_resus_resp_fn_2_CONVSIM"");"); % stratified simulations, variable resus type 2
+    end
+    
+
+    
+    
     
     eval("  Y_t = p_" + num2str(res_vec(i)) + ".Y_t;");
     eval("    p = p_" + num2str(res_vec(i)) + ".p;");
     
-   
+    
     
     A = Y_t(end,1:sum(1:p.Xn-1)); % phytoplankton
     Rd = Y_t(end,sum(1:p.Xn-1)+1:2*sum(1:p.Xn-1)); % dissolved nutrients
@@ -77,7 +127,7 @@ for i = 1:num_res % interating over the resolutions
     n_benthic_end   = B.*p.q.*p.Area_bottom_cyl;
     ntot_end        = sum(sum(n_algae_end)) + sum(sum(n_dissolved_end)) + sum(sum(n_detritus_end)) + sum(n_sediment_end) + sum(n_benthic_end);
     
-     ntot_vec(i) = ntot_end;
+    ntot_vec(i) = ntot_end;
     
     % storing total nutrient concentration for each state variable
     detritus_tot(i) = sum(sum(n_detritus_end));
@@ -141,8 +191,8 @@ hold off
 % plots of local convergence detritus
 figure(3)
 for i =1:sum(1:max_res-1)
-        plot(res_vec', detr_matrix(:,i)./detr_matrix(end,i));
-        hold on
+    plot(res_vec', detr_matrix(:,i)./detr_matrix(end,i));
+    hold on
 end
 title("Local comparison of the detritus nutrient content (normalized).");
 xlabel("resolution");
@@ -152,8 +202,8 @@ hold off
 % plots of local convergence dissolved nutrients
 figure(4)
 for i =1:sum(1:max_res-1)
-        plot(res_vec', nutr_matrix(:,i)./nutr_matrix(end,i));
-        hold on
+    plot(res_vec', nutr_matrix(:,i)./nutr_matrix(end,i));
+    hold on
 end
 title("Local comparison of the dissolved nutrient content (normalized).");
 xlabel("resolution");
@@ -163,8 +213,8 @@ hold off
 % plots of local convergence dissolved nutrients
 figure(5)
 for i =1:sum(1:max_res-1)
-        plot(res_vec, algae_matrix(:,i)./algae_matrix(end,i));
-        hold on
+    plot(res_vec, algae_matrix(:,i)./algae_matrix(end,i));
+    hold on
 end
 title("Local comparison of the plankton nutrient content (normalized).");
 xlabel("resolution");
@@ -179,6 +229,7 @@ hold on
 plot(res_vec, benth_tot./benth_tot(end), res_vec, sed_tot./sed_tot(end));
 %legend("detritus","dissolved nutrients","algae","benthic algae","sediment");
 title("Normalized total nutrient of each state variable");
+legend("Detritus", "dissolved nutr.","pel. algae","benth. algae","sediment");
 hold off
 
 

@@ -268,14 +268,14 @@ for p = 1 %:3
         pp.resus_H = 8;       % half saturation constant of the resuspension rate functional response [m^2 day^-1]
         pp.death_rate = 1;    % coefficient governing the proportion of sinking algae at the bottom that dies.
         % 0 = no death. 1 = all algae that would have sunk through the sediment dies.
-        pp.benth_recycling = 0.5; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
+        pp.benth_recycling = 0.8; % range: [0,1]. Governs the portion of respired nutrients that are released as dissolved nutrients.
         % the rest is bound in particulate matter in the sediment.
         
         pp.constant_resuspension = 1;
         
         if(pp.constant_resuspension)
             resus_vec = [0, 0.1, 0.2]; % 0.2 is used as default value
-            resus_index = 3;
+            resus_index = 2;
             pp.resus = resus_vec(resus_index);  % resuspension rate of the detritus from the sediment. [day^-1]
         else
             pp.resus_depth = ones(1,pp.Xn-1); % Resuspension rate that varies with depth
@@ -295,8 +295,8 @@ for p = 1 %:3
         %for diff_max_z = [1,10,100] %,1000]
         
         %% Diffusion Coefficients
-        dx = zeros(pp.Zn-1,pp.Xn-1); % Radial Turbulent-diffusion coefficient [m^2 day^-1]
-        dz = zeros(pp.Zn-1,pp.Xn-1); % Vertical Turbulent-diffusion coefficient [m^2 day^-1]
+        dx = ones(pp.Zn-1,pp.Xn-1); % Radial Turbulent-diffusion coefficient [m^2 day^-1]
+        dz = ones(pp.Zn-1,pp.Xn-1); % Vertical Turbulent-diffusion coefficient [m^2 day^-1]
         
         if(~pp.stratified)
             diff_vec =[0, 1,10,100, 1000];
@@ -310,19 +310,20 @@ for p = 1 %:3
             
             
             % Linearly decreasing diffusion coefficients with the lake depth.
-            for j = 1:pp.Xn-1
-                for ty = 1:pp.Zn-1
-                    dx(ty,j) =  diff_min_x + (diff_max_x-diff_min_x)*(1- pp.Z_vol(ty,j)/pp.Lmax);
-                    dz(ty,j) =  diff_min_z + (diff_max_z-diff_min_z)*(1- pp.Z_vol(ty,j)/pp.Lmax);
+            if(true)
+                for j = 1:pp.Xn-1
+                    for ty = 1:pp.Zn-1
+                        dx(ty,j) =  diff_min_x + (diff_max_x-diff_min_x)*(1- pp.Z_vol(ty,j)/pp.Lmax);
+                        dz(ty,j) =  diff_min_z + (diff_max_z-diff_min_z)*(1- pp.Z_vol(ty,j)/pp.Lmax);
+                    end
                 end
             end
-            
             pp.dx = dx;
             pp.dz = dz;
         end
         
-        %pp.dx = diff_max_z.*dx;
-        %pp.dz = diff_max_z.*dz;
+        pp.dx = dx;
+        pp.dz = dz;
         
         if(pp.stratified)
             %%%%% manual setting of the diffusion coefficients %%%%
@@ -354,7 +355,7 @@ for p = 1 %:3
         
         test = 1;
         
-        pp.dx = pp.dx./5; % is this the same as having a lake 5 times wider?
+       % pp.dx = pp.dx./5; % is this the same as having a lake 5 times wider?
         
         %% variable resuspension coefficient
         % A type II functional response function is used to

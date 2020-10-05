@@ -61,4 +61,4 @@ kan bli artikel av detta
 
 
 börja med stratifierad sjö, språngskikt diffusionskoefficienter
- --->>> samma näringsmängd per sjöarea istället för per volym <<<---
+ --->>> samma näringsmängd per sjöarea istället för per volym <<<--- Implementerat sep 2020, inte varit relevant förns nu /H

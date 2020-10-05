@@ -1,0 +1,8 @@
+- gör en överblick över de olika modellerna
+ (bakgrundsturbiditet, diffusion, morfometri)
+
+- börja med simpelt tillstånd, lägg på komplexitet
+
+- sammanställ insikter från varje ny implementerad aspekt.
+
+alltså: börja med konstant diffusion utan

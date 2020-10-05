@@ -1,0 +1,17 @@
+- skiktade sjöar 
+
+- step funktion resuspension form
+   low below first threshold)
+   linear zone between 1st and second threshold)
+   constant above 2nd threshold
+
+testa lite extrema fall
+
+
+
+
+- make line thicker in benthic plot
+
+ - sesonalitet med varierande språngskikt
+
+ - relationen resuspension - turbulens (diffusion?)

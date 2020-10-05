@@ -640,30 +640,173 @@ if(true)
             set(gca,'fontSize',font_size);
         end
         
-        %% nutrients proportions and losses
-        t =  nexttile;
-        delete(t);
-        dim = [.11 .1 .2 .2];
+         %% nutrients proportions and losses
+%         t =  nexttile;
+%         delete(t);
+%         dim = [.11 .1 .2 .2];
+%         perc_algae = sum(sum(n_algae_end))/ntot_end;
+%         perc_dissolved = sum(sum(n_dissolved_end))/ntot_end;
+%         perc_detritus = sum(sum(n_detritus_end))/ntot_end;
+%         perc_sediment = sum(n_sediment_end)/ntot_end;
+%         perc_benthic = sum(n_benthic_end)/ntot_end;
+%         [x,isterm,dir] = eventfun_V5(t(end),Y_t(end,:)',p);
+%         str = '';
+%         str  = append( '______________________________________________', '\n');
+%         str  = append(str, 'Norm of the time derivatives at steady state: ', num2str(x), ' \n ');
+%         str  = append(str , 'portion of leaked nutrients: ', num2str(abs((p.ntot_0-ntot_end) /p.ntot_0 )), ' \n ' );
+%         str  = append(str ,'leaked nutrients [mgP]:      ', num2str(abs(p.ntot_0-ntot_end)), ' \n ');
+%         str  = append(str , '______________________________________________', '\n');
+%         str  = append(str ,'portion of nutrients in phytoplankton:        ', num2str(perc_algae), ' \n ');
+%         str  = append(str ,'portion of nutrients in dissolved nutrients: ', num2str(perc_dissolved), ' \n ');
+%         str  = append(str ,'portion of nutrients in detritus:                   ', num2str(perc_detritus), ' \n ');
+%         str  = append(str ,'portion of nutrients in sediment:                ', num2str(perc_sediment), ' \n ');
+%         str  = append(str ,'portion of nutrients in benthic algae:         ', num2str(perc_benthic));
+%         textbox = annotation('textbox',dim,'String',sprintf(str),'FitBoxToText','on','EdgeColor','none');
+%         textbox.FontSize = font_size-4;
+        
+
+        %% parameters and response variables
+        tt =  nexttile;
+        delete(tt);
+        
         perc_algae = sum(sum(n_algae_end))/ntot_end;
         perc_dissolved = sum(sum(n_dissolved_end))/ntot_end;
         perc_detritus = sum(sum(n_detritus_end))/ntot_end;
         perc_sediment = sum(n_sediment_end)/ntot_end;
         perc_benthic = sum(n_benthic_end)/ntot_end;
         [x,isterm,dir] = eventfun_V5(t(end),Y_t(end,:)',p);
-        str = '';
+        
+        
+        
+        % Calculating light and nutrient functional responses for the
+        % pelagic algae
+        l_lim = I./(I+p.H);
+        n_lim = Rd./(Rd+p.M);
+        
+        
+        % this vector at index i is set to 1 if the pelagic algae in cell i is
+        % light limited.
+        l_lim_vec_pel = zeros(1,length(l_lim));
+        
+        for i=1:length(l_lim_vec_pel)
+            if(l_lim(i) <  n_lim(i))
+                l_lim_vec_pel(i) = 1;
+            end
+        end
+        
+        
+        % calculating the light/nutrient limitation for the benthic algae
+        b_idx = p.Zn-1;
+        
+         benth_prod = zeros(p.Xn-1,1);
+        benthic_limitation = zeros(p.Xn-1,1);
+        
+        for i=1:p.Xn-1
+            nutrient_limited_growth =  p.Gmax_benth.*B(i)'.*(Rd(b_idx)./(Rd(b_idx)+p.M_benth));
+            light_limited_growth = p.Gmax_benth./p.kB.*log((p.H_benth + I(b_idx))./(p.H_benth + I(b_idx).*exp(-p.kB.*B(i))));
+            
+             benth_prod(i) = min(nutrient_limited_growth,light_limited_growth);
+             
+            if(nutrient_limited_growth > light_limited_growth)
+                
+                benthic_limitation(i) = 1; % benthic algae is light limited
+            else
+                benthic_limitation(i) = 0; % benthic algae is nutrient limited
+            end
+            
+            b_idx = b_idx + p.Zn-1 -i;
+        end
+        
+        
+        % calculating the flux of pelagic alage into the benthos (sinking
+        % losses)
+        pel_alg_sink_loss_vec = zeros(1,p.Xn-1);
+        % looping over the bottom elements
+        
+        for i = 1:p.Xn-1 % looping over bottom elements, starting at the bottom
+            pel_alg_sink_loss_vec(i) = p.vA.*A(b_idx)*2*pi*0.5*(p.X(end,i+1)^2 - p.X(end,i)^2); % [mgC/day]
+        end
+        
+        % we divide by the standing stock of the pelagic algae to get the
+        % percentage loss per day from sinking
+        
+        perc_sinking_losses_pel =  sum(pel_alg_sink_loss_vec)/ sum(A.*p.volumes_cyl'); % unit: [1/day]
+        
+        
+        
+        % more response variables
+        phyto_vol_avg = (1/p.q)* sum(n_algae_end) ./sum(p.volumes_cyl); % average pelagic algae concentration [mgC/m^3]
+        standing_stock = (1/p.q)* ( sum(n_algae_end) + sum(n_benthic_end))./ sum(p.Area_bottom_cyl); % [mgC/m^3] lake average for the sum of benthic and pelagic algae
+        perc_benth = sum(n_benthic_end) /(sum(n_benthic_end) + sum(n_algae_end)); % percentage of total biomass in benthic algae
+%        pelagic_primary_prod = phytoplankton_primary_prod.*p.volumes_cyl;
+ %        benth_primary_prod = benth_prod.*p.Area_bottom_cyl';
+ %       total_lake_primary_prod = sum( pelagic_primary_prod) + sum(benth_primary_prod);
+        
+ %       pelagic_primary_prod_avg_per_area = sum(pelagic_primary_prod)/sum(p.Area_bottom_cyl);
+  %      benthic_primary_prod_avg_per_area = sum(benth_primary_prod)/sum(p.Area_bottom_cyl);
+        
+        
+        total_pel_nutrients = sum((n_algae_end + n_dissolved_end + n_detritus_end ).*p.volumes_cyl ); % total ammount of dissolved nutrients in the pelagic;
+        
+        % light_limited_vol_portion =  sum(p.volumes_cyl(limitation_vec == val*1.0001)) / sum(p.volumes_cyl); % portion of lake that is light limited
+        
+
         str  = append( '______________________________________________', '\n');
         str  = append(str, 'Norm of the time derivatives at steady state: ', num2str(x), ' \n ');
         str  = append(str , 'portion of leaked nutrients: ', num2str(abs((p.ntot_0-ntot_end) /p.ntot_0 )), ' \n ' );
         str  = append(str ,'leaked nutrients [mgP]:      ', num2str(abs(p.ntot_0-ntot_end)), ' \n ');
         str  = append(str , '______________________________________________', '\n');
-        str  = append(str ,'portion of nutrients in phytoplankton:        ', num2str(perc_algae), ' \n ');
+        str  = append(str ,'portion of nutrients in phytoplankton:         ', num2str(perc_algae), ' \n ');
         str  = append(str ,'portion of nutrients in dissolved nutrients: ', num2str(perc_dissolved), ' \n ');
         str  = append(str ,'portion of nutrients in detritus:                   ', num2str(perc_detritus), ' \n ');
         str  = append(str ,'portion of nutrients in sediment:                ', num2str(perc_sediment), ' \n ');
-        str  = append(str ,'portion of nutrients in benthic algae:         ', num2str(perc_benthic));
+        str  = append(str ,'portion of nutrients in benthic algae:         ', num2str(perc_benthic), '\n');
+        str  = append(str , '______________________________________________', '\n');
+        str  = append(str ,'portion of pelagic nutrients in pel. algae:         ', num2str(sum((n_algae_end).*p.volumes_cyl)/total_pel_nutrients), '\n');
+        str  = append(str ,'portion of pelagic nutrients in dissolved ntr.:   ', num2str(sum((n_dissolved_end).*p.volumes_cyl)/total_pel_nutrients), '\n');
+        str  = append(str ,'portion of pelagic nutrients in detritus:             ', num2str(sum((n_detritus_end ).*p.volumes_cyl)/total_pel_nutrients), '\n');
+        
+        
+        dim = [.01 .1 .2 .2];
         textbox = annotation('textbox',dim,'String',sprintf(str),'FitBoxToText','on','EdgeColor','none');
         textbox.FontSize = font_size-4;
         
+        
+        
+        str  = append( '__________________________________________________________', '\n');
+        str  = append(str, 'Average pelagic algal biomass [mgC/m^3]:                ', num2str(phyto_vol_avg), '\n');
+        str  = append(str, 'Average pelagic dissolved nutrients [mgP/m^3]:         ', num2str(sum(n_dissolved_end)/sum(p.volumes_cyl)), '\n');
+        str  = append(str, 'Average pelagic total nutrients [mgP/m^3]:                ', num2str(( sum(n_dissolved_end)+ sum(n_algae_end)+sum(n_detritus_end) )/sum(p.volumes_cyl)), '\n');
+        str  = append(str, 'standing stock of pelagic + benth algae [mgC/m^2]:  ', num2str(standing_stock), '\n');
+        str  = append(str, 'portion of total biomass in benthic algae :                    ', num2str(perc_benth), '\n');
+        
+        
+        str  = append(str, '__________________________________________________________', '\n');
+ %       str  = append(str, 'lake total primary production [mgC/day]:                       ', num2str(total_lake_primary_prod), '\n');
+ %       str  = append(str, 'benthic contribution to total primary production:            ', num2str(sum(benth_primary_prod)/total_lake_primary_prod), '\n');
+  %      str  = append(str, 'average pelagic primary production [mgC/(day m^2)]:   ', num2str(pelagic_primary_prod_avg_per_area), '\n');
+  %      str  = append(str, 'average benthic primary production [mgC/(day m^2)]:   ', num2str(benthic_primary_prod_avg_per_area), '\n');
+  %      str  = append(str, 'average total primary production [mgC/(day m^2)]:        ', num2str(total_lake_primary_prod/sum(p.Area_bottom_cyl)), '\n');
+        
+        %str  = append(str, '__________________________________________________________', '\n');
+        
+        %     str  = append(str, 'portion of lake volume that is light limited: ', num2str(light_limited_vol_portion ), '\n');
+        
+        dim = [.31 .1 .2 .2];
+        textbox = annotation('textbox',dim,'String',sprintf(str),'FitBoxToText','on','EdgeColor','none');
+        textbox.FontSize = font_size-4;
+        
+        
+        
+        str  = append( '____________________________________________________', '\n');
+        str  = append(str, 'portion of light limited pelagic:                       ', num2str( sum(l_lim_vec_pel.*p.volumes_cyl')/sum(p.volumes_cyl)), '\n');
+        str  = append(str, 'portion of light limited benthic:                       ', num2str(sum(benthic_limitation.*p.Area_bottom_cyl')/sum(p.Area_bottom_cyl)), '\n');
+        
+        str  = append(str, '____________________________________________________', '\n');
+        str  = append(str, 'pelagic algae sinking losses [1/day]: ', num2str(perc_sinking_losses_pel),'\n');
+        dim = [.67 .1 .2 .2];
+        textbox = annotation('textbox',dim,'String',sprintf(str),'FitBoxToText','on','EdgeColor','none');
+        textbox.FontSize = font_size-4;
     end
     
     

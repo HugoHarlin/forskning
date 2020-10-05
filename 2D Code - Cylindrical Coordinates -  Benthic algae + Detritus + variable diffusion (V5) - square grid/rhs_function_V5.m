@@ -8,7 +8,7 @@ function [output] = rhs_function_V5(t,Y,p)
 
 % Version 5 - detritus + variable diffusion coefficients. cut rectangular
 % grid
-
+t
 
 %% reformatting input
 % separating the state variables from y

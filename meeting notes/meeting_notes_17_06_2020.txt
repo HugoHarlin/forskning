@@ -1,0 +1,32 @@
+DONE - öka tjocklek benthic concentration line
+
+- vad händer när sjön blir grundare?
+
+- bentiska alger måste ha en specifik produktion på minst 0.3 för att det ska vara ett netto-utflöde av bentiska lager
+pga. resuspension.
+
+DONE - testa manuell resus på max 0.05, min 0.0001
+
+- i jämvikt måste bentisk algproduktion ligga runt 0.1
+
+- kvoter mellan rates, (resuspension/bakgrundsförluster), (resuspension/sjunkförluster alger)
+
+-----> RESUSPENSIONEN MYCKET KÄNSLIG <-----
+den har vi sämst koll på.
+
+idé: modellera resuspensionen inte som en rate utan som ett övre flux av näring per sekund.
+
+en annan tanke: bentiska alger och sediment har olika resuspensionshastigheter (sediment resuspenderar mer)
+
+testa drastiskt mycket mindre resus på bentiska (t.ex. max 0.02, medans sediment har 0.2 max som vanligt)
+testa generellt mycket mindre resuspension.
+sensitivitetsanalys resuspension
+håkansson bok resuspension
+
+-> "problem med modellen" - branta peakar i concentrationen, inte realistiskt. 
+   - implementera seasonalitet
+        - ljus (20 vintern, 400 sommaren) 
+	-  språngskikt djup
+	-  omblandning? ( i en vecka t.ex. när språngskiktet är som lägst? högst?)
+
+-> frågan är hur mycket seasonaliteten jämnar ut peakar? gör den det?
